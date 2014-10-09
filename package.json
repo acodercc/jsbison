@@ -1,0 +1,39 @@
+{
+  "name": "jsbison",
+  "description": "javascript对bison的实现",
+  "version": "0.1.0",
+  "homepage": "https://github.com/takumi4ichi",
+  "author": {
+    "name": "takumi4ichi",
+    "email": "takumi4ichi@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:takumi4ichi/jsbison.git"
+  },
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "/blob/master/LICENSE"
+    }
+  ],
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-jshint": "~0.10.0"
+  },
+  "dependencies": {},
+  "keywords": [
+    "lib",
+    "parser",
+    "bison",
+    "bnf",
+    "yacc"
+  ]
+}
