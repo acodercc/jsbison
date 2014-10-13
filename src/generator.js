@@ -16,21 +16,39 @@
         this.terminals = [];
         this.nonterminals = {};
 
+        this.actions = [
+            'switch(yystate) {'
+        ];
+
         this._build();
+
+        this.actions.push('}');
+
+        this.actions = this.actions.join('\n');
+
+        this.action = function(yytext, yyleng, yy, yystate, $$, $_){
+        };
+
 
         this.augmentGrammar();
 
         this.lookaheads();
 
 
+
         if(cfg.type == 'LL(1)'){
 
             this.buildLLTable();
+
+            this.parse = this.llparse;
 
         }else if(cfg.type == 'SLR(1)'){
 
             this.buildItemSets();
             this.buildLRTable();
+
+            this.parse = this.lrparse;
+
         }else if(cfg.type == 'LR(1)'){
 
             this.buildItemSets();
@@ -40,6 +58,7 @@
             this.buildItemSets();
             this.buildLRTable();
         }
+
 
     }
 
@@ -513,6 +532,43 @@
             });
 
             return gotos;
+        },
+
+        lrparse: function(input){
+            var self = this,
+            lexer = this.lexer = new Lexer(this.cfg.lex, input),
+            stateStack = [0],
+            symbolStack = [],
+            token = lexer.getToken(),
+            state;
+
+            while(token){
+
+                state = stateStack[stateStack.length - 1];
+
+                var action = self.lrtable.actions[state] && self.lrtable.actions[state][token];
+
+                if(action){
+                    if(action[0] === 'shift'){
+                        stateStack.push(action[1]);
+                        symbolStack.push(token);
+                    }else if(action[0] === 'reduce'){
+                        var production = self.productions[action[1]];
+                        stateStack = stateStack.slice(0, -production.rhs.length); 
+                        symbolStack = symbolStack.slice(0, -production.rhs.length); 
+                        var newstate = self.lrtable.gotos[stateStack.length-1] && self.lrtable.gotos[stateStack.length-1][production.symbol];
+                        symbolStack.push(production.symbol);
+                        debugger
+                        stateStack.push(newstate);
+
+
+                    }
+                }
+
+
+
+                token = lexer.getToken();
+            }
         }
 
     };

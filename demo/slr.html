@@ -3,6 +3,7 @@
 <head>
 <script src="../node_modules/lodash/lodash.js"></script>
 <script src="../src/datatypes.js"></script>
+<script src="../src/lexer.js"></script>
 <script src="../src/generator.js"></script>
 </head>
 <body>
@@ -36,6 +37,30 @@ var generator = new Generator({
     },
     */
 
+    lex: [
+        {
+            regex: /\d+/,
+            token: 'NUMBER'
+        },
+        {
+            regex: /\+/,
+            token: '+'
+        },
+        {
+            regex: /\*/,
+            token: '*'
+        },
+        {
+            regex: /\(/,
+            token: '('
+        },
+        {
+            regex: /\)/,
+            token: ')'
+        }
+    ],
+
+
     type: 'SLR(1)',
     bnf: {
         'expr': {
@@ -55,6 +80,8 @@ var generator = new Generator({
 
 console.log(generator);
 console.log(generator.toString());
+
+console.log(generator.parse('1+2*3'));
 
 
 
