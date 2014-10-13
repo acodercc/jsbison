@@ -28,7 +28,9 @@
     "grunt-contrib-watch": "~0.4.0",
     "grunt-contrib-jshint": "~0.10.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "lodash": "^2.4.1"
+  },
   "keywords": [
     "lib",
     "parser",

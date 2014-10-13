@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="../node_modules/lodash/lodash.js"></script>
+<script src="../src/datatypes.js"></script>
+<script src="../src/generator.js"></script>
+</head>
+<body>
+<script>
+
+var generator = new Generator({
+    tokens: '+ * ( ) NUMBER',
+    start: 'expr',
+
+    /*
+    type: 'LL(1)',
+    bnf: {
+        "expr": {
+            "term rexpr" : "alert($1);"
+        },
+        "rexpr": {
+            "+ term rexpr": "",
+            "":  ""
+        },
+        "term": {
+            "factor rterm": ""
+        },
+        "rterm": {
+            "* factor rterm": "",
+            "": ""
+        },
+        "factor": {
+            "NUMBER": "return $1;",
+            "( expr )": "return $2;"
+        }
+    },
+    */
+
+    type: 'SLR(1)',
+    bnf: {
+        'expr': {
+            'expr + term': '$$ = $1 + $3',
+            'term': ''
+        },
+        'term': {
+            'term * factor': '$$ = $1 * $3',
+            'factor': ''
+        },
+        'factor': {
+            '( expr )': '',
+            'NUMBER': ''
+        }
+    }
+});
+
+console.log(generator);
+console.log(generator.toString());
+
+
+
+</script>
+</body>
+</html>
