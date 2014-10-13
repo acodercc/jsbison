@@ -552,22 +552,25 @@
                     if(action[0] === 'shift'){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
+                        console.log(token);
+                        token = lexer.getToken();
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
                         stateStack = stateStack.slice(0, -production.rhs.length); 
                         symbolStack = symbolStack.slice(0, -production.rhs.length); 
-                        var newstate = self.lrtable.gotos[stateStack.length-1] && self.lrtable.gotos[stateStack.length-1][production.symbol];
+                        var curstate = stateStack[stateStack.length-1];
+
+                        var newstate = self.lrtable.gotos[curstate] && self.lrtable.gotos[curstate][production.symbol];
                         symbolStack.push(production.symbol);
-                        debugger
                         stateStack.push(newstate);
-
-
+                    }else if(action[0] === 'accept'){
+                        console.log('accept');
+                        return true;
                     }
                 }
 
 
 
-                token = lexer.getToken();
             }
         }
 
