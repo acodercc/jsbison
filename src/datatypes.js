@@ -6,14 +6,25 @@
             this.symbol = symbol;
             this.nullable = false;
             this.firsts = [];
-            this.rhs = _.isString(rhs) ? rhs.split(' ') : rhs;
-            this.srhs = _.isString(rhs) ? rhs : rhs.join(' ');
+            this.rhs = _.isString(rhs) ? rhs.trim().split(' ') : rhs;
+            this.srhs = _.isString(rhs) ? rhs.trim() : rhs.join(' ');
             this.id = id;
         }
 
         Production.prototype = {
-            toString: function(){
-                return this.id + '. ' + this.symbol + ' -> ' + this.srhs + '\t\t\t\t\tfirsts:' + this.firsts.join(',');
+            toString: function(dotPos){
+                var srhs = this.srhs, dotRhs;
+
+                if(dotPos !== undefined){
+                    dotRhs = this.rhs.concat();
+                    dotRhs.splice(dotPos, 0, '.');
+
+                    srhs = dotRhs.join(' ');
+                }
+                return this.id + '. ' + this.symbol + ' -> ' + srhs + '\t\t\tfirsts:' + this.firsts.join(',');
+            },
+            equals: function(b){
+                return this.symbol === b.symbol && this.srhs === b.srhs;
             }
         };
 
@@ -30,15 +41,29 @@
             }
         };
 
-        function Item(production, dotPosition, follows){
+        function Item(production, dotPosition, lookaheads){
             this.production = production;
             this.dotPosition = dotPosition || 0;
-            this.follows = follows || [];
+            this.lookaheads = lookaheads || [];
 
             this.dotSymbol = production.rhs[dotPosition];
 
             this.id = parseInt(production.id + 'a' + dotPosition, 36);
         }
+        Item.prototype = {
+            equals: function(b){
+                if(this.coreEquals(b)){
+                    return this.lookaheads.sort().join('||') === b.lookaheads.sort().join('||');
+                }
+                return false;
+            },
+            coreEquals: function(b){
+                return this.production.equals(b.production) && this.dotPosition === b.dotPosition;
+            },
+            toString: function(){
+                return this.production.toString(this.dotPosition) + '\t\tdotPos:' + this.dotPosition + '\t\tlookaheads:' + this.lookaheads.sort().join(',');
+            }
+        };
 
         function ItemSet(){
 
@@ -48,6 +73,14 @@
             this.gotos = {};
         }
         ItemSet.prototype = {
+            coreIndexOf: function(item){
+                for(var i=0,len=this.subItems.length; i<len; i++){
+                    if(this.subItems[i].coreEquals(item)){
+                        return i;
+                    }
+                }
+                return -1;
+            },
             push: function(item){
                 this.subItems.push(item);
                 this._hash[item.id] = true;
@@ -69,8 +102,30 @@
                     }
                 }
             },
+            coreEquals: function(b){
+                if(this.subItems.length !== b.subItems.length){
+                    return false;
+                }
+                _.each(this.subItems, function(item, idx){
+                    if(!item.coreEquals(b.subItems[idx])){
+                        return false;
+                    }
+                });
+                return true;
+            },
+            equals: function(b){
+                if(this.subItems.length !== b.subItems.length){
+                    return false;
+                }
+                for(var i=0,len=this.subItems.length; i<len; i++){
+                    if(!this.subItems[i].equals(b.subItems[i])){
+                        return false;
+                    }
+                }
+                return true;
+            },
             toString: function(){
-                return this.subItems.map(function(a){return a.id;}).sort(function(a,b){return a-b}).join('|');
+                return this.subItems.map(function(item){return item.id;}).sort(function(a,b){return a-b}).join('|');
             }
         };
 
