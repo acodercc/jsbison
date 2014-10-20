@@ -2,13 +2,14 @@
     
     var DataTypes = function(){
 
-        function Production(symbol, rhs, id){
+        function Production(symbol, rhs, id, actionCode){
             this.symbol = symbol;
             this.nullable = false;
             this.firsts = [];
             this.rhs = _.isString(rhs) ? rhs.trim().split(' ') : rhs;
             this.srhs = _.isString(rhs) ? rhs.trim() : rhs.join(' ');
             this.id = id;
+            this.actionCode = actionCode || 'this.$$ = $1;'
         }
 
         Production.prototype = {

@@ -45,13 +45,16 @@
             });
         },
         //环形缓冲器
-        getToken: function getTokenRing(){
+        getToken: function getTokenRing(EOF){
             var self = this,
                 token;
             if(token = self.aheadToken){
                 self.aheadToken = null;
             }else{
                 token = self.getToken_();
+            }
+            if(token == undefined){
+                token = EOF;
             }
             return token;
         },

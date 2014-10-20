@@ -106,7 +106,7 @@
                 self.nonterminals[n.symbol] = n;
 
                 _.forIn(self.bnf[nonterminalSymbol], function(actionCode, production){
-                    p = new DataTypes.Production(nonterminalSymbol, production, self.productions.length+1);
+                    p = new DataTypes.Production(nonterminalSymbol, production, self.productions.length+1, actionCode);
                     self.productions.push(p);
                     n.productions.push(p);
                     p.rhs.forEach(function(symbol){
@@ -390,6 +390,7 @@
                     if(symbol == token){
                         console.log(token);
                         symbolStack.pop();
+                        valueStack.pop();
                         token = lexer.getToken();
                     }else{
                         alert('unexpected token:' + token);
@@ -580,7 +581,7 @@
                 _.each(itemSet.subItems, function(item){
 
                     // A -> ab.c   and   itemSet.gotos[c]
-                    if(item.dotSymbol && _.indexOf(self.terminals, item.dotSymbol)){
+                    if(item.dotSymbol && _.indexOf(self.terminals, item.dotSymbol) > -1){
                         //移入
                         if(!!itemSet.gotos[item.dotSymbol]){
                             state[item.dotSymbol] = ['shift', itemSet.gotos[item.dotSymbol]];
@@ -637,12 +638,15 @@
         lrparse: function(input){
             var self = this,
             lexer = this.lexer = new Lexer(this.cfg.lex, input),
-            stateStack = [0],
-            symbolStack = [],
-            token = lexer.getToken(),
+
+            stateStack = [0],       //状态栈  初始状态0
+            symbolStack = [],       //符号栈
+            valueStack = [],        //值栈
+
+            token = lexer.getToken(self.EOF),
             state;
 
-            while(token){
+            while(true){
 
                 state = stateStack[stateStack.length - 1];
 
@@ -653,20 +657,34 @@
                     if(action[0] === 'shift'){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
-                        token = lexer.getToken();
+                        valueStack.push(lexer.match);
+                        token = lexer.getToken(self.EOF);
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
+
+                        var runstr = 'var $0 = stateStack.length-1;' + production.actionCode
+                            .replace(/\$(\d+)/g, function(_, n){
+                                return 'valueStack[' + (valueStack.length - production.rhs.length + parseInt(n, 10) - 1) + ']'
+                            });
+
+
+                        eval(runstr);
+
                         stateStack = stateStack.slice(0, -production.rhs.length); 
                         symbolStack = symbolStack.slice(0, -production.rhs.length); 
+                        valueStack = valueStack.slice(0, -production.rhs.length);
                         var curstate = stateStack[stateStack.length-1];
 
                         var newstate = self.lrtable.gotos[curstate] && self.lrtable.gotos[curstate][production.symbol];
-
                         console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
                         symbolStack.push(production.symbol);
+                        valueStack.push(this.$$);
                         stateStack.push(newstate);
+
+
                     }else if(action[0] === 'accept'){
                         console.log('accept');
+                        console.log(this.$$);
                         return true;
                     }else{
                         return false;
