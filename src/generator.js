@@ -644,7 +644,7 @@
             state;
 
             lexer.setInput(input);
-            token = self.lexer.getToken(self.EOF);
+            token = self.lexer.getToken();
 
             while(true){
 
@@ -657,8 +657,8 @@
                     if(action[0] === '1'){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
-                        valueStack.push(lexer.match);
-                        token = lexer.getToken(self.EOF);
+                        valueStack.push(lexer.yytext);
+                        token = lexer.getToken();
                     }else if(action[0] === '2'){
                         var production = self.productions[action[1]];
 

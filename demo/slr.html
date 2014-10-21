@@ -18,23 +18,27 @@ var generator = new Generator({
     lex: [
         {
             regex: /\d+/,
-            token: 'NUMBER'
+            action: 'return "NUMBER"'
         },
         {
             regex: /\+/,
-            token: '+'
+            action: 'return "+"'
         },
         {
             regex: /\*/,
-            token: '*'
+            action: 'return "*"'
         },
         {
             regex: /\(/,
-            token: '('
+            action: 'return "("'
+        },
+        {
+            regex: /\s/,
+            action: ''
         },
         {
             regex: /\)/,
-            token: ')'
+            action: 'return ")"'
         }
     ],
 
@@ -87,6 +91,7 @@ console.log(generator);
 console.log(generator.toString());
 
 var parserCode = generator.generate();
+console.log(parserCode);
 
 var parser = eval(parserCode);
 console.log(parser);
