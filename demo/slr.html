@@ -86,7 +86,12 @@ var generator = new Generator({
 console.log(generator);
 console.log(generator.toString());
 
-console.log(generator.parse('1+2*3'));
+var parserCode = generator.generate();
+
+var parser = eval(parserCode);
+console.log(parser);
+
+console.log(parser.parse('1+2*3'));
 
 
 

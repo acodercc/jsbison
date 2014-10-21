@@ -12,23 +12,13 @@
         this.tokens = _.isString(cfg.tokens) ? cfg.tokens.split(' ') : cfg.tokens;
 
         this.productions = [];
+        this.productions_ = [];
 
         this.terminals = [];
         this.nonterminals = {};
 
-        this.actions = [
-            'switch(yystate) {'
-        ];
 
         this._build();
-
-        this.actions.push('}');
-
-        this.actions = this.actions.join('\n');
-
-        this.action = function(yytext, yyleng, yy, yystate, $$, $_){
-        };
-
 
         this.augmentGrammar();
 
@@ -108,6 +98,7 @@
                 _.forIn(self.bnf[nonterminalSymbol], function(actionCode, production){
                     p = new DataTypes.Production(nonterminalSymbol, production, self.productions.length+1, actionCode);
                     self.productions.push(p);
+                    self.productions_.push(p.rhs.length);
                     n.productions.push(p);
                     p.rhs.forEach(function(symbol){
                         self._addSymbol(symbol);
@@ -139,6 +130,7 @@
             self.symbols[EOF] = 1;
 
             self.productions.unshift(acceptProduction);
+            self.productions_[acceptProduction.id] = acceptProduction.rhs.length;
 
             self.terminals.unshift(EOF);
 
@@ -584,7 +576,7 @@
                     if(item.dotSymbol && _.indexOf(self.terminals, item.dotSymbol) > -1){
                         //移入
                         if(!!itemSet.gotos[item.dotSymbol]){
-                            state[item.dotSymbol] = ['shift', itemSet.gotos[item.dotSymbol]];
+                            state[item.dotSymbol] = ['1', itemSet.gotos[item.dotSymbol]];
                         }
                     }
 
@@ -594,7 +586,7 @@
                         if(item.production.symbol === self.acceptSymbol){
 
                             //A === S' 接受
-                            state[self.EOF] = ['accept', item.production.id];
+                            state[self.EOF] = ['3', item.production.id];
                         }else{
                             //A !== S' 归约
                             var terms = self.terminals;
@@ -606,7 +598,7 @@
                                 terms = item.follows;
                             }
                             _.each(terms, function(symbol){
-                                state[symbol] = ['reduce', item.production.id];
+                                state[symbol] = ['2', item.production.id];
                             });
                         }
                     }
@@ -622,13 +614,18 @@
             lrtable = self.lrtable = {actions: states, gotos: gotos};
 
             _.each(self.itemSets, function(itemSet, itemNum){
-                g = gotos[itemNum] = {};
+                var g = {},
+                hasGoto = false;
 
                 _.forIn(itemSet.gotos, function(goItemNum, symbol){
                     if(self.nonterminals[symbol]){
                         g[symbol] = goItemNum;
+                        hasGoto = true;
                     }
                 });
+                if(hasGoto){
+                    gotos[itemNum] = g;
+                }
 
             });
 
@@ -637,14 +634,17 @@
 
         lrparse: function(input){
             var self = this,
-            lexer = this.lexer = new Lexer(this.cfg.lex, input),
 
             stateStack = [0],       //状态栈  初始状态0
             symbolStack = [],       //符号栈
             valueStack = [],        //值栈
 
-            token = lexer.getToken(self.EOF),
+            lexer = self.lexer,
+            token,
             state;
+
+            lexer.setInput(input);
+            token = self.lexer.getToken(self.EOF);
 
             while(true){
 
@@ -654,12 +654,12 @@
 
                 console.log('当前状态:'+state, '输入符号:'+token, '动作:'+action);
                 if(action){
-                    if(action[0] === 'shift'){
+                    if(action[0] === '1'){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
                         valueStack.push(lexer.match);
                         token = lexer.getToken(self.EOF);
-                    }else if(action[0] === 'reduce'){
+                    }else if(action[0] === '2'){
                         var production = self.productions[action[1]];
 
                         var runstr = 'var $0 = stateStack.length-1;' + production.actionCode
@@ -682,7 +682,7 @@
                         stateStack.push(newstate);
 
 
-                    }else if(action[0] === 'accept'){
+                    }else if(action[0] === '3'){
                         console.log('accept');
                         console.log(this.$$);
                         return true;
@@ -693,6 +693,21 @@
                     return false;
                 }
             }
+        },
+        generate: function(){
+            var self = this;
+            var code = [
+                '(function(){',
+                    'return {',
+                        'EOF:"'+self.EOF+'",',
+                        'lexer: ' + (new Lexer(self.cfg.lex)).generate() + ',',
+                        'lrtable: ' + JSON.stringify(self.lrtable, null, '') + ',',
+                        'productions: ' + JSON.stringify(self.productions, null, '') + ',',
+                        'parse:' + self.lrparse.toString(),
+                    '}',
+                '})();'
+            ].join('\n');
+            return code;
         }
 
     };

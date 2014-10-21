@@ -4,7 +4,7 @@
 
 (function(global){
 
-    function Lexer(lex, input){
+    function Lexer(lex){
 
         /**
          * example:
@@ -18,7 +18,6 @@
 
 
         this._setRegExRowBeginTag();
-        this.setInput(input);
     }
 
     Lexer.prototype = {
@@ -77,6 +76,24 @@
                     return lex[i].token;
                 }
             }
+        },
+        generate: function(){
+            var self = this,
+            lex = _.map(self.lex, function(rule){
+                return '{regex:'+rule.regex.toString()+',token:"'+rule.token+'"}';
+            }),
+            code = [
+                '(function(){',
+                    'return {',
+                        'lex: [' + lex.join(',')  + '],',
+                        'setInput:' + Lexer.prototype.setInput.toString() + ',',
+                        'getToken:' + Lexer.prototype.getToken.toString() + ',',
+                        'unToken:' + Lexer.prototype.unToken.toString() + ',',
+                        'getToken_:' + Lexer.prototype.getToken_.toString() + '',
+                    '};',
+                '})()'
+            ].join('\n');
+            return code;
         }
     };
 
