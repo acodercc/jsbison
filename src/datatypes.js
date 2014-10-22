@@ -1,5 +1,9 @@
 (function(global){
     
+    if(typeof require === 'function'){
+        _ = require('lodash');
+    }
+
     var DataTypes = function(){
 
         function Production(symbol, rhs, id, actionCode){
@@ -141,6 +145,10 @@
     }();
 
 
-    this.DataTypes = DataTypes;
+    if(typeof module == 'object' && module.exports){
+        module.exports = DataTypes;
+    }else{
+        global.DataTypes = DataTypes;
+    }
 
 })(this);

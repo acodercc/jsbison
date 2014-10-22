@@ -13,61 +13,23 @@
 var generator = new Generator({
     tokens: '+ * ( ) NUMBER',
     start: 'expr',
-
-
-    lex: [
-        {
+    lex: [{
             regex: /\d+/,
             action: 'return "NUMBER"'
-        },
-        {
+        }, {
             regex: /\+/,
             action: 'return "+"'
-        },
-        {
+        }, {
             regex: /\*/,
             action: 'return "*"'
-        },
-        {
+        }, {
             regex: /\(/,
             action: 'return "("'
-        },
-        {
-            regex: /\s/,
-            action: ''
-        },
-        {
+        }, {
             regex: /\)/,
             action: 'return ")"'
         }
     ],
-
-
-    /*
-    type: 'LL(1)',
-    bnf: {
-        "expr": {
-            "term rexpr" : "alert($1);"
-        },
-        "rexpr": {
-            "+ term rexpr": "",
-            "":  ""
-        },
-        "term": {
-            "factor rterm": ""
-        },
-        "rterm": {
-            "* factor rterm": "",
-            "": ""
-        },
-        "factor": {
-            "NUMBER": "return $1;",
-            "( expr )": "return $2;"
-        }
-    },
-    */
-
-
     type: 'LR(1)',
     bnf: {
         'expr': {
@@ -83,21 +45,13 @@ var generator = new Generator({
             'NUMBER': 'this.$$ = $1'
         }
     }
-
-
 });
 
 console.log(generator);
 console.log(generator.toString());
-
 var parserCode = generator.generate();
-console.log(parserCode);
-
 var parser = eval(parserCode);
-console.log(parser);
-
 console.log(parser.parse('1+2*3'));
-
 
 
 </script>

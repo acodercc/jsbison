@@ -4,6 +4,10 @@
 
 (function(global){
 
+    if(typeof require === 'function'){
+        _ = require('lodash');
+    }
+
     function Lexer(lex){
 
         /**
@@ -51,26 +55,23 @@
                 firstline: 1,
                 lastline: 1,
                 firstcolumn: 1,
-                lastcolumn: 1
+                lastcolumn: 1,
+                _more: false
             });
         },
         //环形缓冲器
         getToken: function getTokenRing(){
             var self = this,
-                token;
-            if(token = self.aheadToken){
-                self.aheadToken = null;
-            }else{
-                token = self.getToken_();
-                if(!token){
-                    token = self.getToken();
-                }
+            token = self.getToken_();
+
+            if(!token){
+                token = self.getToken();
             }
+
             return token;
         },
-        unToken: function(token){
-            var self = this;
-            self.aheadToken = token;
+        unToken: function(charsNum){
+            this.position -= charsNum;
         },
         getCurrentRules: function(){
             var self = this,
@@ -79,7 +80,7 @@
             rules = [];
 
             for(var i=0, len=lex.length; i<len; i++){
-                if((!lex[i].state && curState === Lexer.CONST.INITIAL) || lex[i].state === curState){
+                if((!lex[i].state) || lex[i].state === curState){
                     rules.push(lex[i]);
                 }
             }
@@ -95,28 +96,39 @@
             matches;
 
             if(!input){
-                return Lexer.CONST.EOF;
+                return self.CONST.EOF;
             }
 
-            for(var i=0,len=lex.length; i<len; i++){
-                regex = lex[i].regex;
+            for(var i=0,len=rules.length; i<len; i++){
+                regex = rules[i].regex;
 
-                if(matches = input.match(lex[i].regex)){
-                    self.yytext = matches[0];
-                    self.position += self.yytext.length;
-                    return (new Function(lex[i].action)).call(self);
+                if(matches = input.match(rules[i].regex)){
+                    if(self._more){
+                        self.yytext += matches[0];
+                    }else{
+                        self.yytext = matches[0];
+                    }
+                    self.position += matches[0].length;
+                    self.yyleng = self.yytext.length;
+                    self._more = false;
+                    return (new Function(rules[i].action)).call(self);
                 }
             }
+        },
+        yymore: function(){
+            this._more = true;
         },
         generate: function(){
             var self = this,
             lex = _.map(self.lex, function(rule){
-                return '{regex:'+rule.regex.toString()+',action:\''+rule.action+'\'}';
+                return '{regex:'+rule.regex.toString()+',action:\''+rule.action+'\'' + (rule.state ? ', state:"'+rule.state+'"' : '') + '}';
             }),
             code = [
                 '(function(){',
                     'return {',
+                        'CONST:' + JSON.stringify(Lexer.CONST) + ',',
                         'lex: [' + lex.join(',')  + '],',
+                        'yymore:' + Lexer.prototype.yymore.toString() + ',',
                         'stateStack:' + JSON.stringify(self.stateStack) + ',',
                         'pushState:' + Lexer.prototype.pushState.toString() + ',',
                         'popState:' + Lexer.prototype.popState.toString() + ',',
@@ -132,5 +144,11 @@
         }
     };
 
-    global.Lexer = Lexer;
+    if(typeof module == 'object' && module.exports){
+        module.exports = Lexer;
+    }else{
+        global.Lexer = Lexer;
+    }
+
+
 })(this);

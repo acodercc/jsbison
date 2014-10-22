@@ -1,6 +1,12 @@
 (function(global){
 
 
+    if(typeof require === 'function'){
+        Lexer = require('./lexer.js'),
+        DataTypes = require('./datatypes.js'),
+        _ = require('lodash');
+    }
+
     function Generator(cfg){
 
         this.cfg = cfg;
@@ -576,7 +582,7 @@
                     if(item.dotSymbol && _.indexOf(self.terminals, item.dotSymbol) > -1){
                         //移入
                         if(!!itemSet.gotos[item.dotSymbol]){
-                            state[item.dotSymbol] = ['1', itemSet.gotos[item.dotSymbol]];
+                            state[item.dotSymbol] = ['shift', itemSet.gotos[item.dotSymbol]];
                         }
                     }
 
@@ -586,7 +592,7 @@
                         if(item.production.symbol === self.acceptSymbol){
 
                             //A === S' 接受
-                            state[self.EOF] = ['3', item.production.id];
+                            state[self.EOF] = ['accept', item.production.id];
                         }else{
                             //A !== S' 归约
                             var terms = self.terminals;
@@ -598,7 +604,7 @@
                                 terms = item.follows;
                             }
                             _.each(terms, function(symbol){
-                                state[symbol] = ['2', item.production.id];
+                                state[symbol] = ['reduce', item.production.id];
                             });
                         }
                     }
@@ -654,12 +660,13 @@
 
                 console.log('当前状态:'+state, '输入符号:'+token, '动作:'+action);
                 if(action){
-                    if(action[0] === '1'){
+                    if(action[0] === 'shift'){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
                         valueStack.push(lexer.yytext);
+                        debugger
                         token = lexer.getToken();
-                    }else if(action[0] === '2'){
+                    }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
                         var runstr = 'var $0 = stateStack.length-1;' + production.actionCode
@@ -682,7 +689,7 @@
                         stateStack.push(newstate);
 
 
-                    }else if(action[0] === '3'){
+                    }else if(action[0] === 'accept'){
                         console.log('accept');
                         console.log(this.$$);
                         return true;
@@ -698,13 +705,16 @@
             var self = this;
             var code = [
                 '(function(){',
-                    'return {',
+                    'if(typeof require === "function"){ _ = require("lodash");}',
+                    'var parser = {',
                         'EOF:"'+self.EOF+'",',
                         'lexer: ' + (new Lexer(self.cfg.lex)).generate() + ',',
                         'lrtable: ' + JSON.stringify(self.lrtable, null, '') + ',',
                         'productions: ' + JSON.stringify(self.productions, null, '') + ',',
                         'parse:' + self.lrparse.toString(),
-                    '}',
+                    '};',
+                    'if(typeof module == "object"){module.exports = parser}',
+                    'return parser;',
                 '})();'
             ].join('\n');
             return code;
@@ -713,5 +723,9 @@
     };
 
 
-    global.Generator = Generator;
+    if(typeof module == 'object' && module.exports){
+        module.exports = Generator;
+    }else{
+        global.Generator = Generator;
+    }
 })(this);
