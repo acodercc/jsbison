@@ -13,23 +13,25 @@
 var generator = new Generator({
     tokens: '+ * ( ) NUMBER',
     start: 'expr',
-    lex: [{
-            regex: /\d+/,
-            action: 'return "NUMBER"'
-        }, {
-            regex: /\+/,
-            action: 'return "+"'
-        }, {
-            regex: /\*/,
-            action: 'return "*"'
-        }, {
-            regex: /\(/,
-            action: 'return "("'
-        }, {
-            regex: /\)/,
-            action: 'return ")"'
-        }
-    ],
+    lex: {
+        rules: [{
+                regex: /\d+/,
+                action: 'return "NUMBER"'
+            }, {
+                regex: /\+/,
+                action: 'return "+"'
+            }, {
+                regex: /\*/,
+                action: 'return "*"'
+            }, {
+                regex: /\(/,
+                action: 'return "("'
+            }, {
+                regex: /\)/,
+                action: 'return ")"'
+            }
+        ]
+    },
     type: 'LR(1)',
     bnf: {
         'expr': {

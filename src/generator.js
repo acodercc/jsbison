@@ -1,3 +1,6 @@
+/**
+ * Yet another JavaScript Parser Generator
+ */
 (function(global){
 
 
@@ -664,7 +667,6 @@
                         stateStack.push(action[1]);
                         symbolStack.push(token);
                         valueStack.push(lexer.yytext);
-                        debugger
                         token = lexer.getToken();
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];

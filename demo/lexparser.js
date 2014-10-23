@@ -5,7 +5,8 @@ EOF:"$end",
 lexer: (function(){
 return {
 CONST:{"INITIAL":"INITIAL","EOF":"$end"},
-lex: [{regex:/^\s+/,action:'', state:"INITIAL"},{regex:/^\/\/.*/,action:'', state:"INITIAL"},{regex:/^\/\*(.|\n|\r)*?\*\//,action:'', state:"INITIAL"},{regex:/^</,action:'this.pushState("state"); return "<";', state:"INITIAL"},{regex:/^>/,action:'this.popState(); return ">";', state:"state"},{regex:/^[^\s]+/,action:'this.pushState("actioncode");return "REGEX";', state:"INITIAL"},{regex:/^\w+/,action:'return "STATE";', state:"state"},{regex:/^\s*\{/,action:'this.pushState("multi_actioncode"); this.depth=1;  return "{";', state:"actioncode"},{regex:/^\}/,action:'this.popState();this.popState(); return "}"', state:"multi_actioncode"},{regex:/^(.|\r|\n)*?[}{]/,action:'if(this.yytext[this.yyleng-1] === "{"){this.depth++;}else{this.depth--;}if(!this.depth){this.unToken(1);this.yytext = this.yytext.substr(0,this.yyleng-1);return "ACTIONBODY";}else{this.yymore()}', state:"multi_actioncode"},{regex:/^[^\r\n]*/,action:'this.popState();return "ACTIONBODY";', state:"actioncode"}],
+states:{"exclusive":{"INITIAL":true,"state":true,"actioncode":true,"multi_actioncode":true}},
+rules: [{regex:/^\s+/,action:'', state:"INITIAL"},{regex:/^\/\/.*/,action:'', state:"INITIAL"},{regex:/^\/\*(.|\n|\r)*?\*\//,action:'', state:"INITIAL"},{regex:/^</,action:'this.pushState("state"); return "<";', state:"INITIAL"},{regex:/^>/,action:'this.popState(); return ">";', state:"state"},{regex:/^\w+/,action:'return "STATE";', state:"state"},{regex:/^[^\s]+/,action:'this.pushState("actioncode");return "REGEX";', state:"INITIAL"},{regex:/^\s*\{/,action:'this.pushState("multi_actioncode"); this.depth=1;  return "{";', state:"actioncode"},{regex:/^\}/,action:'this.popState();this.popState(); return "}"', state:"multi_actioncode"},{regex:/^(.|\r|\n)*?[}{]/,action:'if(this.yytext[this.yyleng-1] === "{"){this.depth++;}else{this.depth--;}if(!this.depth){this.unToken(1);this.yytext = this.yytext.substr(0,this.yyleng-1);return "ACTIONBODY";}else{this.yymore()}', state:"multi_actioncode"},{regex:/^[^\r\n]*/,action:'this.popState();return "ACTIONBODY";', state:"actioncode"}],
 yymore:function (){
             this._more = true;
         },
@@ -18,17 +19,26 @@ popState:function (){
         },
 getCurrentRules:function (){
             var self = this,
-            lex = self.lex,
+            rules = self.rules,
             curState = self.stateStack[self.stateStack.length-1],
-            rules = [];
+            activeRules = [],
+            isInclusiveState = true;           //是否为包容状态
 
-            for(var i=0, len=lex.length; i<len; i++){
-                if((!lex[i].state) || lex[i].state === curState){
-                    rules.push(lex[i]);
+            if(self.states.exclusive[curState]){
+                isInclusiveState = false;
+            }
+
+
+            for(var i=0, len=rules.length; i<len; i++){
+
+                //处于包容状态时，没有声明状态的规则被激活
+                //否则，只有状态为当前状态的规则被激活
+                if((isInclusiveState && (!rules[i].state)) || rules[i].state === curState){
+                    activeRules.push(rules[i]);
                 }
             }
 
-            return rules;
+            return activeRules;
         },
 setInput:function (input){
             _.merge(this, {
@@ -60,20 +70,19 @@ unToken:function (charsNum){
         },
 getToken_:function (){
             var self = this,
-            lex = self.lex,
             input = self.input.slice(self.position),
             regex,
-            rules = self.getCurrentRules(),
+            activeRules = self.getCurrentRules(),
             matches;
 
             if(!input){
                 return self.CONST.EOF;
             }
 
-            for(var i=0,len=rules.length; i<len; i++){
-                regex = rules[i].regex;
+            for(var i=0,len=activeRules.length; i<len; i++){
+                regex = activeRules[i].regex;
 
-                if(matches = input.match(rules[i].regex)){
+                if(matches = input.match(activeRules[i].regex)){
                     if(self._more){
                         self.yytext += matches[0];
                     }else{
@@ -82,7 +91,7 @@ getToken_:function (){
                     self.position += matches[0].length;
                     self.yyleng = self.yytext.length;
                     self._more = false;
-                    return (new Function(rules[i].action)).call(self);
+                    return (new Function(activeRules[i].action)).call(self);
                 }
             }
         }
@@ -116,7 +125,6 @@ parse:function (input){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
                         valueStack.push(lexer.yytext);
-                        debugger
                         token = lexer.getToken();
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];

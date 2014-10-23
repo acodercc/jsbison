@@ -1,5 +1,5 @@
 /**
- * Yet another JavaScript Lexer
+ * Yet another JavaScript Lexer Generator
  */
 
 (function(global){
@@ -13,13 +13,24 @@
         /**
          * example:
          * [{
-         *      state: 'INITIAL',
-         *      regex: /\d+/,
-         *      action: 'return "NUMBER"'
+         *      state: 'INITIAL', //该规则在哪个状态下激活
+         *      regex: /\d+/,    //该规则的正则，匹配成功的话，已匹配文本在this.yytext，在语义动作代码中可修改
+         *      action: 'return "NUMBER"'  //该规则的语义动作，return的是TOKEN-name
          * }]
          *
          */
-        this.lex = lex;
+        this.states = lex.states || {};
+        this.states.exclusive = this.states.exclusive || {};
+
+        if(typeof this.states.exclusive === 'string'){
+            var exclusive = {};
+            _.each(this.states.exclusive.trim().split(' '), function(exclusiveState){
+                exclusive[exclusiveState] = true;
+            });
+            this.states.exclusive = exclusive;
+        }
+
+        this.rules = lex.rules;
         this.stateStack = [Lexer.CONST.INITIAL];
 
         this._setRegExRowBeginTag();
@@ -34,7 +45,7 @@
          * regex /\d/  transfer  /^\d/
          */
         _setRegExRowBeginTag: function(){
-            _.each(this.lex, function(rule){
+            _.each(this.rules, function(rule){
                 rule.regex = eval(rule.regex.toString().replace(/^\//,'/^'));
             });
         },
@@ -75,34 +86,42 @@
         },
         getCurrentRules: function(){
             var self = this,
-            lex = self.lex,
+            rules = self.rules,
             curState = self.stateStack[self.stateStack.length-1],
-            rules = [];
+            activeRules = [],
+            isInclusiveState = true;           //是否为包容状态
 
-            for(var i=0, len=lex.length; i<len; i++){
-                if((!lex[i].state) || lex[i].state === curState){
-                    rules.push(lex[i]);
+            if(self.states.exclusive[curState]){
+                isInclusiveState = false;
+            }
+
+
+            for(var i=0, len=rules.length; i<len; i++){
+
+                //处于包容状态时，没有声明状态的规则被激活
+                //否则，只有状态为当前状态的规则被激活
+                if((isInclusiveState && (!rules[i].state)) || rules[i].state === curState){
+                    activeRules.push(rules[i]);
                 }
             }
 
-            return rules;
+            return activeRules;
         },
         getToken_: function(){
             var self = this,
-            lex = self.lex,
             input = self.input.slice(self.position),
             regex,
-            rules = self.getCurrentRules(),
+            activeRules = self.getCurrentRules(),
             matches;
 
             if(!input){
                 return self.CONST.EOF;
             }
 
-            for(var i=0,len=rules.length; i<len; i++){
-                regex = rules[i].regex;
+            for(var i=0,len=activeRules.length; i<len; i++){
+                regex = activeRules[i].regex;
 
-                if(matches = input.match(rules[i].regex)){
+                if(matches = input.match(activeRules[i].regex)){
                     if(self._more){
                         self.yytext += matches[0];
                     }else{
@@ -111,7 +130,7 @@
                     self.position += matches[0].length;
                     self.yyleng = self.yytext.length;
                     self._more = false;
-                    return (new Function(rules[i].action)).call(self);
+                    return (new Function(activeRules[i].action)).call(self);
                 }
             }
         },
@@ -120,14 +139,15 @@
         },
         generate: function(){
             var self = this,
-            lex = _.map(self.lex, function(rule){
+            rules = _.map(self.rules, function(rule){
                 return '{regex:'+rule.regex.toString()+',action:\''+rule.action+'\'' + (rule.state ? ', state:"'+rule.state+'"' : '') + '}';
             }),
             code = [
                 '(function(){',
                     'return {',
                         'CONST:' + JSON.stringify(Lexer.CONST) + ',',
-                        'lex: [' + lex.join(',')  + '],',
+                        'states:' + JSON.stringify(self.states) + ',',
+                        'rules: [' + rules.join(',')  + '],',
                         'yymore:' + Lexer.prototype.yymore.toString() + ',',
                         'stateStack:' + JSON.stringify(self.stateStack) + ',',
                         'pushState:' + Lexer.prototype.pushState.toString() + ',',
