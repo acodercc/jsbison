@@ -31,7 +31,6 @@
     });
 
     var exprParserCode = ExprParserGenerator.generate();
-    console.log(exprParserCode);
     var exprParser = eval(exprParserCode);
 
     exprParser.parse("1+2*3");

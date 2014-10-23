@@ -6,7 +6,6 @@
     if(typeof require){
         var Generator = require('./generator.js');
     }
-    debugger
 
     var lexParser = eval( new Generator({
         lex: {
