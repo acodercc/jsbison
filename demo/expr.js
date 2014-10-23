@@ -1,6 +1,6 @@
 
 var fs = require('fs');
-var lexparser = require('./lexparser.js');
+var lexparser = require('../src/lex2cfg.js');
 var exprbody = fs.readFileSync('expr.l');
 
 

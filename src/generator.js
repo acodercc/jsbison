@@ -661,6 +661,10 @@
 
                 var action = self.lrtable.actions[state] && self.lrtable.actions[state][token];
 
+                if(!action){
+                    debugger
+                }
+
                 console.log('当前状态:'+state, '输入符号:'+token, '动作:'+action);
                 if(action){
                     if(action[0] === 'shift'){
@@ -705,6 +709,7 @@
         },
         generate: function(){
             var self = this;
+
             var code = [
                 '(function(){',
                     'if(typeof require === "function"){ _ = require("lodash");}',

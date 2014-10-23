@@ -1,4 +1,5 @@
-
+%x MultiComment
+%%
 \*           return "*";
 \d+    {
     if(parseInt(this.yytext,10).toString() !== "NaN"){
@@ -15,4 +16,5 @@
 <INITIAL>   \}           return "}";
 
 \w  {}
-
+\/\*        this.pushState("MultiComment");
+<MultiComment>  \*\/        this.popState();
