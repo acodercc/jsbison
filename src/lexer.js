@@ -99,8 +99,8 @@
             for(var i=0, len=rules.length; i<len; i++){
 
                 //处于包容状态时，没有声明状态的规则被激活
-                //否则，只有状态为当前状态的规则被激活
-                if((isInclusiveState && (!rules[i].state)) || rules[i].state === curState){
+                //否则，只有开始条件中包含当前状态的规则被激活
+                if((isInclusiveState && (!rules[i].conditions)) || (rules[i].conditions && rules[i].conditions.indexOf(curState) > -1)){
                     activeRules.push(rules[i]);
                 }
             }
@@ -140,7 +140,7 @@
         generate: function(){
             var self = this,
             rules = _.map(self.rules, function(rule){
-                return '{regex:'+rule.regex.toString()+',action:\''+rule.action+'\'' + (rule.state ? ', state:"'+rule.state+'"' : '') + '}';
+                return '{regex:'+rule.regex.toString()+',action:\''+rule.action+'\'' + (rule.conditions ? ', conditions:'+JSON.stringify(rule.conditions) : '') + '}';
             }),
             code = [
                 '(function(){',

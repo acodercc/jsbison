@@ -1,5 +1,9 @@
+
+
 %x MultiComment
+
 %%
+
 \*           return "*";
 \d+    {
     if(parseInt(this.yytext,10).toString() !== "NaN"){

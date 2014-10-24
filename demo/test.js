@@ -7,6 +7,8 @@
         var lexcfg = lexParser.$$;
     }
 
+    console.log(lexParser);
+
     var ExprParserGenerator = new Generator({
         lex: lexcfg,
 
@@ -33,4 +35,5 @@
     var exprParserCode = ExprParserGenerator.generate();
     var exprParser = eval(exprParserCode);
 
-    exprParser.parse("1+2*3");
+    console.log('parse result:', exprParser.parse("1+2*3"));
+    console.log(exprParser);

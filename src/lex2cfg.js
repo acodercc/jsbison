@@ -1,5 +1,5 @@
 /**
- * canonical lexfile to jsbison-cfg(jsbison使用的json格式的context free grammar)
+ * canonical lexfile to jsbison-lexer-cfg(jsbison中的lexer使用的json格式的context free grammar)
  */
 (function(global){
 
@@ -10,7 +10,7 @@
     var lexParser = eval( new Generator({
         lex: {
             states:{
-                exclusive: 'condition actioncode multi_actioncode condition_names rules'
+                exclusive: 'rules start_conditions condition_names actioncode multi_actioncode'
             },
             rules: [{
                     regex: /\s+/,
@@ -22,67 +22,71 @@
                     regex: /\/\*(.|\n|\r)*?\*\//,
                     action: ''      //skip multiline comment
                 }, {
-                    state: 'rules',
+                    conditions: ['rules'],
                     regex: /\s+/,
                     action: ''
                 }, {
-                    state: 'rules',
+                    conditions: ['rules'],
                     regex: /</,
-                    action: 'this.pushState("condition"); return "<";'
+                    action: 'this.pushState("start_conditions"); return "<";'
                 }, {
-                    state: 'condition',
-                    regex: />/,
-                    action: 'this.popState(); return ">";'
-                }, {
-                    state: 'INITIAL',
-                    regex: /%s/,
-                    action: 'this.pushState("condition_names"); return "INCLUSIVE_CONDITION";'
-                }, {
-                    state: 'INITIAL',
-                    regex: /%x/,
-                    action: 'this.pushState("condition_names"); return "EXCLUSIVE_CONDITION";'
-                }, {
-                    state: 'INITIAL',
-                    regex: /%%/,
-                    action: 'this.pushState("rules");return "%%";'
-                }, {
-                    state: 'condition_names',
-                    regex: /[\r\n]/,
-                    action: 'this.popState();'
-                }, {
-                    state: 'condition_names',
-                    regex: /\s+/,
-                    action: '/* skip */'
-                }, {
-                    state: 'condition_names',
-                    regex: /[a-zA-Z]\w+/,
-                    action: 'return "CONDITION";'
-                }, {
-                    state: 'condition',
+                    conditions: ['start_conditions'],
                     regex: /\w+/,
                     action: 'return "START_CONDITION";'
                 }, {
+                    conditions: ['start_conditions'],
+                    regex: /,/,
+                    action: 'return ",";'
+                }, {
+                    conditions: ['start_conditions'],
+                    regex: />/,
+                    action: 'this.popState(); return ">";'
+                }, {
+                    conditions: ['INITIAL'],
+                    regex: /%s/,
+                    action: 'this.pushState("condition_names"); return "INCLUSIVE_CONDITION";'
+                }, {
+                    conditions: ['INITIAL'],
+                    regex: /%x/,
+                    action: 'this.pushState("condition_names"); return "EXCLUSIVE_CONDITION";'
+                }, {
+                    conditions: ['INITIAL'],
+                    regex: /%%/,
+                    action: 'this.pushState("rules");return "%%";'
+                }, {
+                    conditions: ['condition_names'],
+                    regex: /[\r\n]/,
+                    action: 'this.popState();'
+                }, {
+                    conditions: ['condition_names'],
+                    regex: /\s+/,
+                    action: '/* skip */'
+                }, {
+                    conditions: ['condition_names'],
+                    regex: /[a-zA-Z]\w+/,
+                    action: 'return "CONDITION";'
+                }, {
                     //匹配正则表达式
-                    state: 'rules',
+                    conditions: ['rules'],
                     regex: /[^\s]+/,
                     action: 'this.pushState("actioncode");return "REGEX";'
                 }, {
                     //在actioncode状态，一旦匹配到{，如果actionDepth为0，则转为multi_actioncode状态，并返回'{'
                     //否则不返回任何TOKEN，只是actionDepth增加
                     //转换为multi_actioncode状态后就不会在匹配到这个{了
-                    state: 'actioncode',
+                    conditions: ['actioncode'],
                     regex: /\s*\{/,
                     action: 'this.pushState("multi_actioncode"); this.depth=1;  return "{";'
                 }, {
-                    state: 'multi_actioncode',
+                    conditions: ['multi_actioncode'],
                     regex: /\}/,
                     action: 'this.popState();this.popState(); return "}"'
                 }, {
-                    state: 'multi_actioncode',
+                    conditions: ['multi_actioncode'],
                     regex: /(.|\r|\n)*?[}{]/,
                     action: 'if(this.yytext[this.yyleng-1] === "{"){this.depth++;}else{this.depth--;}if(!this.depth){this.unToken(1);this.yytext = this.yytext.substr(0,this.yyleng-1);return "ACTIONBODY";}else{this.yymore()}'
                 }, {
-                    state: 'actioncode',
+                    conditions: ['actioncode'],
                     regex: /[^\r\n]*/,
                     action: 'this.popState();return "ACTIONBODY";'
                 }
@@ -90,11 +94,11 @@
         },
 
         start: 'lex',
-        tokens: '< > { } REGEX ACTIONBODY EXCLUSIVE_CONDITION INCLUSIVE_CONDITION %% START_CONDITION',
+        tokens: '< > { } REGEX ACTIONBODY EXCLUSIVE_CONDITION INCLUSIVE_CONDITION %% START_CONDITION ,',
         type: 'LR(1)',
         bnf: {
             'lex' : {
-                'definitionlist %% rulelist': 'this.$$ = {rules: $3}; this.$$.states = {inclusive:$1.inclusive, exclusive:$1.exclusive};'
+                'definitionlist %% rulelist': 'this.$$ = {rules: $3}; this.$$.states = {}; if($1.inclusive){this.$$.states.inclusive = $1.inclusive;} if($1.exclusive){this.$$.states.exclusive = $1.exclusive;}'
             },
             'definitionlist': {
                 'INCLUSIVE_CONDITION condition_names': 'this.$$ = {"inclusive":$2};',
@@ -109,11 +113,12 @@
                 'rule': 'this.$$ = [$1]'
             },
             'rule': {
-                'start_condition REGEX action': 'this.$$ = {regex: (new RegExp($2)), action:$3}; if($1){this.$$.state=$1} ',
+                '< start_conditions > REGEX action': 'this.$$ = {regex: (new RegExp($4)), action:$5}; if($1){this.$$.conditions=$2} ',
                 'REGEX action': 'this.$$ = {regex: (new RegExp($1)), action:$2}; '
             },
-            'start_condition':{
-                '< START_CONDITION >': 'this.$$ = $2'
+            'start_conditions':{
+                'start_conditions , START_CONDITION': '$1.push($3); this.$$ = $1;',
+                'START_CONDITION': 'this.$$ = [$1];'
             },
             'action': {
                 'ACTIONBODY': 'this.$$ = $1',

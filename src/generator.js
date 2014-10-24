@@ -389,7 +389,6 @@
                     }
                 }else if(self.terminals.indexOf(symbol) > -1){
                     if(symbol == token){
-                        console.log(token);
                         symbolStack.pop();
                         valueStack.pop();
                         token = lexer.getToken();
@@ -697,7 +696,6 @@
 
                     }else if(action[0] === 'accept'){
                         console.log('accept');
-                        console.log(this.$$);
                         return true;
                     }else{
                         return false;
