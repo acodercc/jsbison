@@ -661,6 +661,8 @@
                 var action = self.lrtable.actions[state] && self.lrtable.actions[state][token];
 
                 if(!action){
+                    //这是编写bnf时容易出错的，通过当前输入和当前状态(状态隐含了当前入栈的符号)
+                    //无法找到右端句柄，也无法通过当前输入决定应进行移进动作
                     debugger
                 }
 
@@ -689,9 +691,9 @@
 
                         var newstate = self.lrtable.gotos[curstate] && self.lrtable.gotos[curstate][production.symbol];
                         console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
-                        symbolStack.push(production.symbol);
-                        valueStack.push(this.$$);
-                        stateStack.push(newstate);
+                        symbolStack.push(production.symbol);  //归约后的非终结符，压入符号栈
+                        valueStack.push(this.$$);  //语义动作中归约后的非终结府的值，压入值栈
+                        stateStack.push(newstate); //goto表查到的新状态，压入状态栈
 
 
                     }else if(action[0] === 'accept'){

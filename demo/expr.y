@@ -3,7 +3,7 @@
 %%
 
 expr
-    : expr '+' term
+    : expr + term
         {
             this.$$ = $1 + $2;
         }
@@ -14,7 +14,7 @@ expr
     ;
 
 term
-    : term '*' factoy
+    : term * factoy
         {
             this.$$ = $1 * $2;
         }
@@ -29,7 +29,7 @@ factoy
         {
             this.$$ = parseInt($1, 10);
         }
-    |   '(' expr ')'
+    |   ( expr )
         {
             this.$$ = $2;
         }

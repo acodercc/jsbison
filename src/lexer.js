@@ -70,7 +70,6 @@
                 _more: false
             });
         },
-        //环形缓冲器
         getToken: function getTokenRing(){
             var self = this,
             token = self.getToken_();
@@ -118,6 +117,11 @@
                 return self.CONST.EOF;
             }
 
+            if(!activeRules.length){
+                debugger
+                //这个断点的原因是，这是编写lex文法时常见的错误，就是自动机陷入一个没有任何规则激活的状态中了
+            }
+
             for(var i=0,len=activeRules.length; i<len; i++){
                 regex = activeRules[i].regex;
 
@@ -133,6 +137,8 @@
                     return (new Function(activeRules[i].action)).call(self);
                 }
             }
+            debugger
+            //这个断点的原因是，没有在循环体中return 说明当前输入已经无法命中任何规则，自动机将陷入死循环
         },
         yymore: function(){
             this._more = true;

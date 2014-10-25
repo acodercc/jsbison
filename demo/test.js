@@ -2,35 +2,23 @@
     var fs = require('fs');
     var Generator = require('../src/generator.js');
     var lexParser = require('../src/lex2cfg.js');
+    var bnfParser = require('../src/bnf2cfg.js');
 
     if(lexParser.parse(fs.readFileSync('./expr.l').toString())){
         var lexcfg = lexParser.$$;
     }
 
-    console.log(lexParser);
+    if(bnfParser.parse(fs.readFileSync('./expr.y').toString())){
+        var bnfcfg = bnfParser.$$;
+    }
 
-    var ExprParserGenerator = new Generator({
-        lex: lexcfg,
+    bnfcfg.lex = lexcfg;
+    bnfcfg.type = 'LR(1)';
 
-        tokens: '+ * ( ) NUMBER',
-        start: 'expr',
-        type: 'LR(1)',
-        bnf: {
-            'expr': {
-                'expr + term': 'this.$$ = parseInt($1) + parseInt($3)',
-                'term': 'this.$$ = $1'
-            },
-            'term': {
-                'term * factor': 'this.$$ = $1 * $3',
-                'factor': 'this.$$ = $1'
-            },
-            'factor': {
-                '( expr )': 'this.$$ = $2',
-                'NUMBER': 'this.$$ = $1'
-            }
-        }
+    console.log(JSON.stringify(bnfcfg, null, ' '));
 
-    });
+
+    var ExprParserGenerator = new Generator(bnfcfg);
 
     var exprParserCode = ExprParserGenerator.generate();
     var exprParser = eval(exprParserCode);
