@@ -7,6 +7,8 @@
     if(typeof require === 'function'){
         Lexer = require('./lexer.js'),
         DataTypes = require('./datatypes.js'),
+        lex2cfg = require('./lex2cfg.js'),
+        bnf2cfg = require('./bnf2cfg.js'),
         _ = require('lodash');
     }
 
@@ -728,6 +730,9 @@
         }
 
     };
+
+    Generator.lex2cfg = lex2cfg;
+    Generator.bnf2cfg = bnf2cfg;
 
 
     if(typeof module == 'object' && module.exports){

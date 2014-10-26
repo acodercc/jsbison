@@ -17,7 +17,6 @@
 
     console.log(JSON.stringify(bnfcfg, null, ' '));
 
-
     var ExprParserGenerator = new Generator(bnfcfg);
 
     var exprParserCode = ExprParserGenerator.generate();

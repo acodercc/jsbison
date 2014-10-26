@@ -7,6 +7,7 @@
     "name": "takumi4ichi",
     "email": "takumi4ichi@gmail.com"
   },
+  "main": "src/generator.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:takumi4ichi/jsbison.git"
