@@ -642,6 +642,11 @@
             return gotos;
         },
 
+
+        lrreset: function(){
+            var self = this;
+            self.lexer.reset();
+        },
         lrparse: function(input){
             var self = this,
 
@@ -678,11 +683,10 @@
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
-                        var runstr = 'var $0 = stateStack.length-1;' + production.actionCode
+                        var runstr = production.actionCode
                             .replace(/\$(\d+)/g, function(_, n){
                                 return 'valueStack[' + (valueStack.length - production.rhs.length + parseInt(n, 10) - 1) + ']'
                             });
-
 
                         eval(runstr);
 
@@ -717,6 +721,7 @@
                     'if(typeof require === "function"){ _ = require("lodash");}',
                     'var parser = {',
                         'EOF:"'+self.EOF+'",',
+                        'reset:' + self.lrreset.toString() + ',',
                         'lexer: ' + (new Lexer(self.cfg.lex)).generate() + ',',
                         'lrtable: ' + JSON.stringify(self.lrtable, null, '') + ',',
                         'productions: ' + JSON.stringify(self.productions, null, '') + ',',

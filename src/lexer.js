@@ -55,6 +55,9 @@
         popState: function(){
             return this.stateStack.pop();
         },
+        reset: function(){
+            this.setInput(this.input);
+        },
         setInput: function(input){
             _.merge(this, {
                 input: input,
@@ -162,7 +165,8 @@
                         'setInput:' + Lexer.prototype.setInput.toString() + ',',
                         'getToken:' + Lexer.prototype.getToken.toString() + ',',
                         'unToken:' + Lexer.prototype.unToken.toString() + ',',
-                        'getToken_:' + Lexer.prototype.getToken_.toString() + '',
+                        'getToken_:' + Lexer.prototype.getToken_.toString() + ',',
+                        'reset:' + Lexer.prototype.reset.toString() + '',
                     '};',
                 '})()'
             ].join('\n');
