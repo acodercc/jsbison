@@ -1,8 +1,8 @@
 
     var fs = require('fs');
     var Generator = require('../src/generator.js');
-    var lexParser = require('../src/lex2cfg.js');
-    var bnfParser = require('../src/bnf2cfg.js');
+    var lexParser = require('../src/lex-parser.js');
+    var bnfParser = require('../src/bnf-parser.js');
 
     if(lexParser.parse(fs.readFileSync('./expr.l').toString())){
         var lexcfg = lexParser.$$;

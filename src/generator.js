@@ -7,8 +7,8 @@
     if(typeof require === 'function'){
         Lexer = require('./lexer.js'),
         DataTypes = require('./datatypes.js'),
-        lex2cfg = require('./lex2cfg.js'),
-        bnf2cfg = require('./bnf2cfg.js'),
+        lexParser = require('./lex-parser.js'),
+        bnfParser = require('./bnf-parser.js'),
         _ = require('lodash');
     }
 
@@ -713,7 +713,7 @@
             var self = this;
 
             var code = [
-                '(function(){',
+                '(function(global, undef){',
                     'if(typeof require === "function"){ _ = require("lodash");}',
                     'var parser = {',
                         'EOF:"'+self.EOF+'",',
@@ -723,16 +723,21 @@
                         'parse:' + self.lrparse.toString(),
                     '};',
                     'if(typeof module == "object"){module.exports = parser}',
+                    self.cfg.code || '',
                     'return parser;',
-                '})();'
+                '})(this);'
             ].join('\n');
             return code;
         }
 
     };
 
-    Generator.lex2cfg = lex2cfg;
-    Generator.bnf2cfg = bnf2cfg;
+    if(typeof lexParser === 'object'){
+        Generator.lexParser = lexParser;
+    }
+    if(typeof bnfParser === 'object'){
+        Generator.bnfParser = bnfParser;
+    }
 
 
     if(typeof module == 'object' && module.exports){
