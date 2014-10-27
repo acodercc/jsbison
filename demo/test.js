@@ -26,5 +26,5 @@
     var exprParserCode = ExprParserGenerator.generate();
     var exprParser = eval(exprParserCode);
 
-    console.log('parse result:', exprParser.parse("1+2*3"));
-    console.log(exprParser);
+    exprParser.parse("1+2*3")
+    console.log(exprParser.lexer.input , 'parse result:', exprParser.$$);

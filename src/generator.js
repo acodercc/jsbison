@@ -683,13 +683,17 @@
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
-                        var runstr = production.actionCode
+                        var runstr = ('this.$$ = $1;'+production.actionCode)
                             .replace(/\$(\d+)/g, function(_, n){
                                 return 'valueStack[' + (valueStack.length - production.rhs.length + parseInt(n, 10) - 1) + ']'
                             });
 
                         eval(runstr);
 
+
+                        console.log(' 当前右端句柄为:' + production.rhs);
+                        console.log(' 右端句柄对应值栈内容为:' + JSON.stringify(valueStack.slice(-production.rhs.length)));
+                        console.log(' 归约后的值为:' + JSON.stringify(this.$$));
 
                         //如果是当前归约用的产生式不是epsilon:
                         //  符号栈才需要对右端句柄包含的各个symbol出栈，归约为产生式的非终结符(lhs)再入栈
@@ -706,6 +710,8 @@
 
                         //查goto表，找到代表归约后的lhs符号的新状态
                         var newstate = self.lrtable.gotos[curstate] && self.lrtable.gotos[curstate][production.symbol];
+
+
                         console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
                         symbolStack.push(production.symbol);  //归约后的lhs符号，压入符号栈
                         valueStack.push(this.$$);  //语义动作中归约后的值(rhs各项计算出的lhs值)，压入值栈

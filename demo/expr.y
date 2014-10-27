@@ -5,7 +5,7 @@
 expr
     : expr + term
         {
-            this.$$ = $1 + $2;
+            this.$$ = $1 + $3;
         }
     | term
         {
@@ -16,7 +16,7 @@ expr
 term
     : term * factoy
         {
-            this.$$ = $1 * $2;
+            this.$$ = $1 * $3;
         }
     | factoy
         {
