@@ -4,7 +4,8 @@
     var lexParser = require('../src/lex-parser.js');
     var bnfParser = require('../src/bnf-parser.js');
 
-    if(lexParser.parse(fs.readFileSync('./expr.l').toString())){
+    var lexcontent = fs.readFileSync('./expr.l').toString();
+    if(lexParser.parse(lexcontent)){
         var lexcfg = lexParser.$$;
     }
 

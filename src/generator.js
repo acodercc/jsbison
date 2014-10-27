@@ -690,15 +690,25 @@
 
                         eval(runstr);
 
-                        stateStack = stateStack.slice(0, -production.rhs.length); 
-                        symbolStack = symbolStack.slice(0, -production.rhs.length); 
-                        valueStack = valueStack.slice(0, -production.rhs.length);
+
+                        //如果是当前归约用的产生式不是epsilon:
+                        //  符号栈才需要对右端句柄包含的各个symbol出栈，归约为产生式的非终结符(lhs)再入栈
+                        //  值栈才需要对右端句柄对应的各个值出栈，进行归约计算为某个lhs值，再把lhs值入栈
+                        //  状态栈也才需要对代表右端句柄的各个状态进行出栈，查goto表找到代表lhs符号的新状态入栈
+                        //否则，应用epsilon，各栈保持原地不动
+                        if(production.rhs.length){ 
+                            symbolStack = symbolStack.slice(0, -production.rhs.length); 
+                            valueStack = valueStack.slice(0, -production.rhs.length);
+                            stateStack = stateStack.slice(0, -production.rhs.length); 
+                        }
+
                         var curstate = stateStack[stateStack.length-1];
 
+                        //查goto表，找到代表归约后的lhs符号的新状态
                         var newstate = self.lrtable.gotos[curstate] && self.lrtable.gotos[curstate][production.symbol];
                         console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
-                        symbolStack.push(production.symbol);  //归约后的非终结符，压入符号栈
-                        valueStack.push(this.$$);  //语义动作中归约后的非终结府的值，压入值栈
+                        symbolStack.push(production.symbol);  //归约后的lhs符号，压入符号栈
+                        valueStack.push(this.$$);  //语义动作中归约后的值(rhs各项计算出的lhs值)，压入值栈
                         stateStack.push(newstate); //goto表查到的新状态，压入状态栈
 
 

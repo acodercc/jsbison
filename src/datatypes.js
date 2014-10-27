@@ -10,8 +10,17 @@
             this.symbol = symbol;
             this.nullable = false;
             this.firsts = [];
-            this.rhs = _.isString(rhs) ? rhs.trim().split(' ') : rhs;
-            this.srhs = _.isString(rhs) ? rhs.trim() : rhs.join(' ');
+            if(_.isString(rhs)){
+                rhs = rhs.trim();
+                if(rhs === ''){
+                    rhs = [];
+                }else{
+                    rhs = rhs.split(' ');
+                }
+            }
+            
+            this.rhs = rhs;
+            this.srhs = rhs.join(' ');
             this.id = id;
             this.actionCode = actionCode || 'this.$$ = $1;'
         }

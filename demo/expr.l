@@ -1,7 +1,3 @@
-
-
-%x MultiComment
-
 %%
 
 \*           return "*";
@@ -17,8 +13,6 @@
 \(           return "(";
 \)           return ")";
 \{           return "{";
-<INITIAL>   \}           return "}";
+\}           return "}";
 
 \w  {}
-\/\*        this.pushState("MultiComment");
-<MultiComment>  \*\/        this.popState();

@@ -98,7 +98,8 @@ var lexParserCode = new Generator({
         },
         'definitionlist': {
             'INCLUSIVE_CONDITION condition_names': 'this.$$ = {"inclusive":$2};',
-            'EXCLUSIVE_CONDITION condition_names': 'this.$$ = {"exclusive":$2};'
+            'EXCLUSIVE_CONDITION condition_names': 'this.$$ = {"exclusive":$2};',
+            '': 'this.$$ = {}'
         },
         'condition_names': {
             'condition_names CONDITION' : '$1.push($1);this.$$=$1;',
