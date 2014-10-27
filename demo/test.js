@@ -24,6 +24,8 @@
     var ExprParserGenerator = new Generator(bnfcfg);
 
     var exprParserCode = ExprParserGenerator.generate();
+    fs.writeFileSync('./expr.js', exprParserCode);
+
     var exprParser = eval(exprParserCode);
 
     exprParser.parse("1+2*3")

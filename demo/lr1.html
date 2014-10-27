@@ -37,7 +37,7 @@ var generator = new Generator({
     type: 'LR(1)',
     bnf: {
         'expr': {
-            'expr + term': 'this.$$ = parseInt($1) + parseInt($3)',
+            'expr + term': 'this.$$ = $1 + $3',
             'term': 'this.$$ = $1'
         },
         'term': {
@@ -46,7 +46,7 @@ var generator = new Generator({
         },
         'factor': {
             '( expr )': 'this.$$ = $2',
-            'NUMBER': 'this.$$ = $1'
+            'NUMBER': 'this.$$ = parseInt($1)'
         }
     }
 });

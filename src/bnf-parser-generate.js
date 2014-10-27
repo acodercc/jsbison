@@ -111,7 +111,8 @@ var bnfParserCode = new Generator({
             'rhs' : 'this.$$ = $1'
         },
         'rhs': {
-            'TOKENS { CODE }': 'this.$$ = {}; this.$$[$1] = $3;'
+            'TOKENS { CODE }': 'this.$$ = {}; this.$$[$1] = $3;',
+            'TOKENS': 'this.$$ = {}; this.$$[$1] = ""'
         }
     },
     code: 'global.bnfParser = parser;'
