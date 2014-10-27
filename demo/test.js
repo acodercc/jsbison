@@ -5,11 +5,14 @@
     var bnfParser = require('../src/bnf-parser.js');
 
     var lexcontent = fs.readFileSync('./expr.l').toString();
+    var bnfcontent = fs.readFileSync('./expr.y').toString();
+
+
     if(lexParser.parse(lexcontent)){
         var lexcfg = lexParser.$$;
     }
 
-    if(bnfParser.parse(fs.readFileSync('./expr.y').toString())){
+    if(bnfParser.parse(bnfcontent)){
         var bnfcfg = bnfParser.$$;
     }
 

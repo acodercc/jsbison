@@ -78,13 +78,17 @@ var bnfParserCode = new Generator({
     tokens: '%% CODE TOKEN TOKENS { } DEC_TOKEN DEC_START PRIORITY DEC_ASSOC',
     bnf: {
         'bnf' : {
-            'declarations %% productions $end': ' this.$$ = $1; this.$$.bnf = $3; ',
-            'declarations %% productions %% $end': ' this.$$ = $1; this.$$.bnf = $3; ',
+            'declarations %% productions opt_ends $end': ' this.$$ = $1; this.$$.bnf = $3; ',
             'declarations %% productions %% CODE $end' : 'this.$$ = $1; this.$$.bnf = $3; this.$$.code = $5;'
+        },
+        'opt_ends' : {
+            '%%' : '',
+            '' : ''
         },
         'declarations' : {
             'declarations declaration' : '_.merge($1, $2); this.$$ = $1;',
-            'declaration': 'this.$$ = $1;'
+            'declaration': 'this.$$ = $1;',
+            '': 'this.$$ = {};'
         },
         'declaration' : {
             'DEC_TOKEN TOKENS' : 'this.$$ = {tokens: $2}; ',
