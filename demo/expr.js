@@ -59,12 +59,12 @@ setInput:function (input){
                 _more: false
             });
         },
-getToken:function getTokenRing(){
+getToken:function (isDebug){
             var self = this,
-            token = self.getToken_();
+            token = self.getToken_(isDebug);
 
             if(!token){
-                token = self.getToken();
+                token = self.getToken(isDebug);
             }
 
             return token;
@@ -72,7 +72,7 @@ getToken:function getTokenRing(){
 unToken:function (charsNum){
             this.position -= charsNum;
         },
-getToken_:function (){
+getToken_:function (isDebug){
             var self = this,
             input = self.input.slice(self.position),
             regex,
@@ -83,7 +83,7 @@ getToken_:function (){
                 return self.CONST.EOF;
             }
 
-            if(!activeRules.length){
+            if(!activeRules.length && isDebug){
                 debugger
                 //这个断点的原因是，这是编写lex文法时常见的错误，就是自动机陷入一个没有任何规则激活的状态中了
             }
@@ -103,8 +103,10 @@ getToken_:function (){
                     return (new Function(activeRules[i].action)).call(self);
                 }
             }
-            debugger
-            //这个断点的原因是，没有在循环体中return 说明当前输入已经无法命中任何规则，自动机将陷入死循环
+            if(isDebug){
+                debugger
+                //这个断点的原因是，没有在循环体中return 说明当前输入已经无法命中任何规则，自动机将陷入死循环
+            }
         },
 reset:function (){
             this.setInput(this.input);
@@ -113,7 +115,7 @@ reset:function (){
 })(),
 lrtable: {"actions":{"0":{"NUMBER":["shift",4],"(":["shift",5]},"1":{"$end":["shift",6],"+":["shift",7]},"2":{"$end":["reduce",2],"+":["reduce",2],"*":["shift",8]},"3":{"$end":["reduce",4],"*":["reduce",4],"+":["reduce",4]},"4":{"$end":["reduce",5],"*":["reduce",5],"+":["reduce",5]},"5":{"NUMBER":["shift",12],"(":["shift",13]},"6":{"$end":["accept",0]},"7":{"NUMBER":["shift",4],"(":["shift",5]},"8":{"NUMBER":["shift",4],"(":["shift",5]},"9":{")":["shift",16],"+":["shift",17]},"10":{")":["reduce",2],"+":["reduce",2],"*":["shift",18]},"11":{")":["reduce",4],"*":["reduce",4],"+":["reduce",4]},"12":{")":["reduce",5],"*":["reduce",5],"+":["reduce",5]},"13":{"NUMBER":["shift",12],"(":["shift",13]},"14":{"$end":["reduce",1],"+":["reduce",1],"*":["shift",8]},"15":{"$end":["reduce",3],"*":["reduce",3],"+":["reduce",3]},"16":{"$end":["reduce",6],"*":["reduce",6],"+":["reduce",6]},"17":{"NUMBER":["shift",12],"(":["shift",13]},"18":{"NUMBER":["shift",12],"(":["shift",13]},"19":{")":["shift",22],"+":["shift",17]},"20":{")":["reduce",1],"+":["reduce",1],"*":["shift",18]},"21":{")":["reduce",3],"*":["reduce",3],"+":["reduce",3]},"22":{")":["reduce",6],"*":["reduce",6],"+":["reduce",6]}},"gotos":{"0":{"expr":1,"term":2,"factoy":3},"5":{"expr":9,"term":10,"factoy":11},"7":{"term":14,"factoy":3},"8":{"factoy":15},"13":{"expr":19,"term":10,"factoy":11},"17":{"term":20,"factoy":11},"18":{"factoy":21}}},
 productions: [{"symbol":"$accept","nullable":false,"firsts":["NUMBER","("],"rhs":["expr","$end"],"srhs":"expr $end","id":0,"actionCode":"this.$$ = $1;"},{"symbol":"expr","nullable":false,"firsts":["NUMBER","("],"rhs":["expr","+","term"],"srhs":"expr + term","id":1,"actionCode":"\n            this.$$ = $1 + $3;\n        "},{"symbol":"expr","nullable":false,"firsts":["NUMBER","("],"rhs":["term"],"srhs":"term","id":2,"actionCode":"this.$$ = $1;"},{"symbol":"term","nullable":false,"firsts":["NUMBER","("],"rhs":["term","*","factoy"],"srhs":"term * factoy","id":3,"actionCode":"\n            this.$$ = $1 * $3;\n        "},{"symbol":"term","nullable":false,"firsts":["NUMBER","("],"rhs":["factoy"],"srhs":"factoy","id":4,"actionCode":"this.$$ = $1;"},{"symbol":"factoy","nullable":false,"firsts":["NUMBER"],"rhs":["NUMBER"],"srhs":"NUMBER","id":5,"actionCode":"this.$$ = $1;"},{"symbol":"factoy","nullable":false,"firsts":["("],"rhs":["(","expr",")"],"srhs":"( expr )","id":6,"actionCode":"\n            this.$$ = $2;\n        "}],
-parse:function (input){
+parse:function (input, isDebug){
             var self = this,
 
             stateStack = [0],       //状态栈  初始状态0
@@ -125,7 +127,7 @@ parse:function (input){
             state;
 
             lexer.setInput(input);
-            token = self.lexer.getToken();
+            token = self.lexer.getToken(isDebug);
 
             while(true){
 
@@ -133,19 +135,21 @@ parse:function (input){
 
                 var action = self.lrtable.actions[state] && self.lrtable.actions[state][token];
 
-                if(!action){
+                if(!action && isDebug){
                     //这是编写bnf时容易出错的，通过当前输入和当前状态(状态隐含了当前入栈的符号)
                     //无法找到右端句柄，也无法通过当前输入决定应进行移进动作
                     debugger
                 }
 
-                console.log('当前状态:'+state, '输入符号:'+token, '动作:'+action);
+                if(isDebug){
+                    console.log('当前状态:'+state, '输入符号:'+token, '动作:'+action);
+                }
                 if(action){
                     if(action[0] === 'shift'){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
                         valueStack.push(lexer.yytext);
-                        token = lexer.getToken();
+                        token = lexer.getToken(isDebug);
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
@@ -157,9 +161,11 @@ parse:function (input){
                         eval(runstr);
 
 
-                        console.log(' 当前右端句柄为:' + production.rhs);
-                        console.log(' 右端句柄对应值栈内容为:' + JSON.stringify(valueStack.slice(-production.rhs.length)));
-                        console.log(' 归约后的值为:' + JSON.stringify(this.$$));
+                        if(isDebug){
+                            console.log(' 当前右端句柄为:' + production.rhs);
+                            console.log(' 右端句柄对应值栈内容为:' + JSON.stringify(valueStack.slice(-production.rhs.length)));
+                            console.log(' 归约后的值为:' + JSON.stringify(this.$$));
+                        }
 
                         //如果是当前归约用的产生式不是epsilon:
                         //  符号栈才需要对右端句柄包含的各个symbol出栈，归约为产生式的非终结符(lhs)再入栈
@@ -178,14 +184,18 @@ parse:function (input){
                         var newstate = self.lrtable.gotos[curstate] && self.lrtable.gotos[curstate][production.symbol];
 
 
-                        console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
+                        if(isDebug){
+                            console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
+                        }
                         symbolStack.push(production.symbol);  //归约后的lhs符号，压入符号栈
                         valueStack.push(this.$$);  //语义动作中归约后的值(rhs各项计算出的lhs值)，压入值栈
                         stateStack.push(newstate); //goto表查到的新状态，压入状态栈
 
 
                     }else if(action[0] === 'accept'){
-                        console.log('accept');
+                        if(isDebug){
+                            console.log('accept');
+                        }
                         return true;
                     }else{
                         return false;

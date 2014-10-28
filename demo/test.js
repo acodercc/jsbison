@@ -19,7 +19,6 @@
     bnfcfg.lex = lexcfg;
     bnfcfg.type = 'LR(1)';
 
-    console.log(JSON.stringify(bnfcfg, null, ' '));
 
     var ExprParserGenerator = new Generator(bnfcfg);
 
@@ -28,5 +27,5 @@
 
     var exprParser = eval(exprParserCode);
 
-    exprParser.parse("1+2*3")
+    exprParser.parse("1+2*3", true)
     console.log(exprParser.lexer.input , 'parse result:', exprParser.$$);

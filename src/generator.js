@@ -647,7 +647,7 @@
             var self = this;
             self.lexer.reset();
         },
-        lrparse: function(input){
+        lrparse: function(input, isDebug){
             var self = this,
 
             stateStack = [0],       //状态栈  初始状态0
@@ -659,7 +659,7 @@
             state;
 
             lexer.setInput(input);
-            token = self.lexer.getToken();
+            token = self.lexer.getToken(isDebug);
 
             while(true){
 
@@ -667,19 +667,21 @@
 
                 var action = self.lrtable.actions[state] && self.lrtable.actions[state][token];
 
-                if(!action){
+                if(!action && isDebug){
                     //这是编写bnf时容易出错的，通过当前输入和当前状态(状态隐含了当前入栈的符号)
                     //无法找到右端句柄，也无法通过当前输入决定应进行移进动作
                     debugger
                 }
 
-                console.log('当前状态:'+state, '输入符号:'+token, '动作:'+action);
+                if(isDebug){
+                    console.log('当前状态:'+state, '输入符号:'+token, '动作:'+action);
+                }
                 if(action){
                     if(action[0] === 'shift'){
                         stateStack.push(action[1]);
                         symbolStack.push(token);
                         valueStack.push(lexer.yytext);
-                        token = lexer.getToken();
+                        token = lexer.getToken(isDebug);
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
@@ -691,9 +693,11 @@
                         eval(runstr);
 
 
-                        console.log(' 当前右端句柄为:' + production.rhs);
-                        console.log(' 右端句柄对应值栈内容为:' + JSON.stringify(valueStack.slice(-production.rhs.length)));
-                        console.log(' 归约后的值为:' + JSON.stringify(this.$$));
+                        if(isDebug){
+                            console.log(' 当前右端句柄为:' + production.rhs);
+                            console.log(' 右端句柄对应值栈内容为:' + JSON.stringify(valueStack.slice(-production.rhs.length)));
+                            console.log(' 归约后的值为:' + JSON.stringify(this.$$));
+                        }
 
                         //如果是当前归约用的产生式不是epsilon:
                         //  符号栈才需要对右端句柄包含的各个symbol出栈，归约为产生式的非终结符(lhs)再入栈
@@ -712,14 +716,18 @@
                         var newstate = self.lrtable.gotos[curstate] && self.lrtable.gotos[curstate][production.symbol];
 
 
-                        console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
+                        if(isDebug){
+                            console.log(' 右端句柄归约后的符号:'+production.symbol+',应转移到:'+newstate);
+                        }
                         symbolStack.push(production.symbol);  //归约后的lhs符号，压入符号栈
                         valueStack.push(this.$$);  //语义动作中归约后的值(rhs各项计算出的lhs值)，压入值栈
                         stateStack.push(newstate); //goto表查到的新状态，压入状态栈
 
 
                     }else if(action[0] === 'accept'){
-                        console.log('accept');
+                        if(isDebug){
+                            console.log('accept');
+                        }
                         return true;
                     }else{
                         return false;
