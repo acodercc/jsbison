@@ -198,5 +198,8 @@ parse:function (input){
 };
 if(typeof module == "object"){module.exports = parser}
 
+
+global.exprParser = parser;
+
 return parser;
 })(this);

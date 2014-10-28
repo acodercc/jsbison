@@ -25,3 +25,7 @@ factoy
             this.$$ = $2;
         }
     ;
+
+%%
+
+global.exprParser = parser;

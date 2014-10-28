@@ -6,7 +6,7 @@ var Generator = require('./generator.js');
 var bnfParserCode = new Generator({
     lex: {
         states:{
-            exclusive: 'parse_token parse_tokens productions parse_colon parse_symbols parse_code'
+            exclusive: 'parse_token parse_tokens productions parse_colon parse_symbols parse_code parse_all_code'
         },
         rules: [{
                 regex: /\s+/,
@@ -39,6 +39,10 @@ var bnfParserCode = new Generator({
                 action: 'this.pushState("productions"); return "%%";'
             }, {
                 conditions: ['productions'],
+                regex: /%%/,
+                action: 'this.pushState("parse_all_code");return "%%";'
+            }, {
+                conditions: ['productions'],
                 regex: /{/,
                 action: 'this.pushState("parse_code"); this.depth=1; return "{"; '
             }, {
@@ -65,6 +69,10 @@ var bnfParserCode = new Generator({
                 conditions: ['productions'],
                 regex: /}/,
                 action: 'return "}";'
+            }, {
+                conditions: ['parse_all_code'],
+                regex: /[\s\S]*/,
+                action: 'this.popState();return "CODE";'
             }, {
                 conditions: ['parse_token', 'parse_tokens', 'productions', 'parse_colon', 'parse_code'],
                 regex: /[\s]+/,
