@@ -685,12 +685,12 @@
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
-                        var runstr = ('this.$$ = $1;'+production.actionCode)
+                        var reduceCode = ('/*' + production.symbol + ' -> ' + production.srhs + ';*/ this.$$ = $1;'+production.actionCode)
                             .replace(/\$(\d+)/g, function(_, n){
                                 return 'valueStack[' + (valueStack.length - production.rhs.length + parseInt(n, 10) - 1) + ']'
                             });
 
-                        eval(runstr);
+                        eval(reduceCode);
 
 
                         if(isDebug){
