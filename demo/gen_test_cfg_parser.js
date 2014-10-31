@@ -20,11 +20,6 @@
     bnfcfg.type = 'LR(1)';
 
 
-
-
-
-
-
     var ExprParserGenerator = new Generator(bnfcfg);
 
     var exprParserCode = ExprParserGenerator.generate();

@@ -495,6 +495,9 @@
             if (gotoItemSet.subItems.length){
                 gotoItemSet = self._closureItemSet(gotoItemSet);
             }
+            //cahce the key
+            gotoItemSet.coreKey();
+            gotoItemSet.key();
             return gotoItemSet;
         },
 

@@ -63,13 +63,17 @@
             this.dotSymbol = production.rhs[dotPosition];
 
             this.id = parseInt(production.id + 'a' + dotPosition, 36);
+            this.key = this.id + '_' + lookaheads.sort().join('|');
         }
         Item.prototype = {
             equals: function(b){
+                /*
                 if(this.coreEquals(b)){
                     return this.lookaheads.sort().join('||') === b.lookaheads.sort().join('||');
                 }
                 return false;
+                */
+                return this.key === b.key;
             },
             coreEquals: function(b){
                 //return this.production.equals(b.production) && this.dotPosition === b.dotPosition;
@@ -89,6 +93,24 @@
             this.gotos = {};
         }
         ItemSet.prototype = {
+            key: function(){
+                if(this._key){
+                    return this._key;
+                }else{
+                    return this._key = _.map(this.subItems, function(item){
+                        return item.key;
+                    }).sort().join('_');
+                }
+            },
+            coreKey: function(){
+                if(this._coreKey){
+                    return this._coreKey;
+                }else{
+                    return this._coreKey = _.map(this.subItems, function(item){
+                        return item.id;
+                    }).sort().join('_');
+                }
+            },
             coreIndexOf: function(item){
                 for(var i=0,len=this.subItems.length; i<len; i++){
                     if(this.subItems[i].coreEquals(item)){
@@ -119,6 +141,7 @@
                 }
             },
             coreEquals: function(b){
+                /*
                 if(this.subItems.length !== b.subItems.length){
                     return false;
                 }
@@ -128,8 +151,11 @@
                     }
                 });
                 return true;
+                */
+                return this.coreKey() === b.coreKey();
             },
             equals: function(b){
+                /*
                 if(this.subItems.length !== b.subItems.length){
                     return false;
                 }
@@ -139,6 +165,8 @@
                     }
                 }
                 return true;
+                */
+                return this.key() === b.key();
             },
             toString: function(){
                 return this.subItems.map(function(item){return item.id;}).sort(function(a,b){return a-b}).join('|');
