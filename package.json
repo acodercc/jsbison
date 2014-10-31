@@ -1,7 +1,7 @@
 {
   "name": "jsbison",
   "description": "javascript对bison的实现",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://github.com/takumi4ichi",
   "author": {
     "name": "takumi4ichi",

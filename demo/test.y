@@ -28,4 +28,4 @@ factoy
 
 %%
 
-global.exprParser = parser;
+global.testParser = parser;

@@ -209,7 +209,7 @@ parse:function (input, isDebug){
 if(typeof module == "object"){module.exports = parser}
 
 
-global.exprParser = parser;
+global.testParser = parser;
 
 return parser;
 })(this);

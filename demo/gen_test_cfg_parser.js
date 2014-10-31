@@ -19,7 +19,9 @@
     bnfcfg.lex = lexcfg;
     bnfcfg.type = 'LR(1)';
 
-    fs.writeFileSync('testcfg.js', 'var testcfg = '+JSON.stringify(bnfcfg, null, '  '));
+
+
+
 
 
 
@@ -32,4 +34,13 @@
 
     exprParser.parse("1+2*3", true)
     console.log(exprParser.lexer.input , 'parse result:', exprParser.$$);
+
+
+
+    var rule, i=0;
+    while(rule = lexcfg.rules[i++]){
+        rule.regex = rule.regex.toString();
+    }
+    fs.writeFileSync('testcfg.js', 'var testcfg = '+JSON.stringify(bnfcfg, null, '  '));
+
 })();

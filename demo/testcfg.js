@@ -14,43 +14,45 @@ var testcfg = {
       "   ( expr )": "\n            this.$$ = $2;\n        "
     }
   },
-  "code": "\n\nglobal.exprParser = parser;\n",
+  "code": "\n\nglobal.testParser = parser;\n",
   "lex": {
     "rules": [
       {
-        "regex": {},
+        "regex": "/^\\*/",
         "action": "           return \"*\";"
       },
       {
-        "regex": {},
+        "regex": "/^\\d+/",
         "action": "    if(parseInt(this.yytext,10).toString() !== \"NaN\"){        this.yytext = parseInt(this.yytext, 10);    }else{        this.yytext = \"0\";    }    return \"NUMBER\";"
       },
       {
-        "regex": {},
+        "regex": "/^\\+/",
         "action": "           return \"+\";"
       },
       {
-        "regex": {},
+        "regex": "/^\\(/",
         "action": "           return \"(\";"
       },
       {
-        "regex": {},
+        "regex": "/^\\)/",
         "action": "           return \")\";"
       },
       {
-        "regex": {},
+        "regex": "/^\\{/",
         "action": "           return \"{\";"
       },
       {
-        "regex": {},
+        "regex": "/^\\}/",
         "action": "           return \"}\";"
       },
       {
-        "regex": {},
+        "regex": "/^\\w/",
         "action": ""
       }
     ],
-    "states": {}
+    "states": {
+      "exclusive": {}
+    }
   },
   "type": "LR(1)"
 }
