@@ -72,7 +72,9 @@
                 return false;
             },
             coreEquals: function(b){
-                return this.production.equals(b.production) && this.dotPosition === b.dotPosition;
+                //return this.production.equals(b.production) && this.dotPosition === b.dotPosition;
+
+                return this.id === b.id;
             },
             toString: function(){
                 return this.production.toString(this.dotPosition) + '\t\tdotPos:' + this.dotPosition + '\t\tlookaheads:' + this.lookaheads.sort().join(',');
