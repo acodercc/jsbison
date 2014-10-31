@@ -58,12 +58,12 @@
         function Item(production, dotPosition, lookaheads){
             this.production = production;
             this.dotPosition = dotPosition || 0;
-            this.lookaheads = lookaheads || [];
+            this.lookaheads = lookaheads || {};
 
             this.dotSymbol = production.rhs[dotPosition];
 
             this.id = parseInt(production.id + 'a' + dotPosition, 36);
-            this.key = this.id + '_' + lookaheads.sort().join('|');
+            this.key = this.id + '_' + Object.keys(lookaheads).sort().join('|');
         }
         Item.prototype = {
             equals: function(b){
@@ -81,7 +81,7 @@
                 return this.id === b.id;
             },
             toString: function(){
-                return this.production.toString(this.dotPosition) + '\t\tdotPos:' + this.dotPosition + '\t\tlookaheads:' + this.lookaheads.sort().join(',');
+                return this.production.toString(this.dotPosition) + '\t\tdotPos:' + this.dotPosition + '\t\tlookaheads:' + Object.keys(this.lookaheads).sort().join(',');
             }
         };
 

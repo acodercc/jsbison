@@ -537,11 +537,13 @@
                              * 然后进行FIRSTS运算，拿到lookaheads
                              * 每个lookaheads，进行并集运算，得到最终的lookaheads
                              */
-                            var lookaheads = [];
-                            _.each(item.lookaheads, function(fchr){
+                            var lookaheads = {};
+                            _.each(Object.keys(item.lookaheads), function(fchr){
                                 var afterRHS = item.production.rhs.slice(item.dotPosition+1)
                                     afterRHS.push(fchr);
-                                    lookaheads = _.union(lookaheads, self._first(afterRHS));
+                                    _.forEach(self._first(afterRHS), function(token){
+                                        lookaheads[token] = true;
+                                    });
                             });
 
                             //求闭包的项的输入点非终结符，的每个产生式p
@@ -556,7 +558,7 @@
                                         cont = true;                            //C0不动点循环继续
                                     }else{
                                         item = closureItemSet.subItems[itemIdx];
-                                        item.lookaheads = _.union(item.lookaheads, lookaheads);
+                                        item.lookaheads = _.merge(item.lookaheads, lookaheads);
                                     }
                             });
                             //closureSymbolHash[item.dotSymbol] = true;   //cur nonterminal derivated
@@ -607,7 +609,7 @@
                             if(self.cfg.type === 'SLR(1)'){
                                 terms = self.nonterminals[item.production.symbol].follows;
                             }else if(self.cfg.type === 'LR(1)'){
-                                terms = item.lookaheads;
+                                terms = Object.keys(item.lookaheads);
                             }else if(self.cfg.type === 'LALR'){
                                 terms = item.follows;
                             }
