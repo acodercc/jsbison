@@ -2,16 +2,16 @@ var testcfg = {
   "start": "expr",
   "bnf": {
     "expr": {
-      " expr + term": "\n            this.$$ = $1 + $3;\n        ",
-      " term": ""
+      "expr + term": "\n            this.$$ = $1 + $3;",
+      "term": ""
     },
     "term": {
-      " term * factoy": "\n            this.$$ = $1 * $3;\n        ",
-      " factoy": ""
+      "term * factoy": "\n            this.$$ = $1 * $3;\n        ",
+      "factoy": ""
     },
     "factoy": {
-      " NUMBER": "",
-      "   ( expr )": "\n            this.$$ = $2;\n        "
+      "NUMBER": "",
+      "( expr )": "this.$$ = $2;"
     }
   },
   "code": "\n\nglobal.testParser = parser;\n",

@@ -21,15 +21,15 @@ var bnfParserCode = new Generator({
                 regex: /%start/,
                 action: 'this.pushState("parse_token"); return "DEC_START";'
             }, {
+                conditions: ['parse_token'],
+                regex: /[^\s]+/,
+                action: 'this.popState(); return "TOKEN";'
+            }, {
                 regex: /%token/,
                 action: 'this.pushState("parse_tokens"); return "DEC_TOKEN";'
             }, {
                 regex: /%(left|rigth|assoc)/,
                 action: 'this.pushState("parse_tokens"); return "DEC_ASSOC";'
-            }, {
-                conditions: ['parse_token'],
-                regex: /[^\s]+/,
-                action: 'this.popState(); return "TOKEN";'
             }, {
                 conditions: ['parse_tokens'],
                 regex: /[^\r\n]+/,
@@ -43,32 +43,48 @@ var bnfParserCode = new Generator({
                 action: 'this.pushState("parse_all_code");return "%%";'
             }, {
                 conditions: ['productions'],
-                regex: /{/,
-                action: 'this.pushState("parse_code"); this.depth=1; return "{"; '
-            }, {
-                conditions: ['productions'],
                 regex: /\|/,
-                action: 'this.pushState("parse_tokens");return "|";'
+                action: 'this.pushState("parse_rhs");return "|";'
             }, {
                 conditions: ['productions'],
                 regex: /;/,
                 action: 'return ";";'
             }, {
                 conditions: ['productions'],
-                regex: /\w+/,
-                action: 'this.pushState("parse_colon");return "TOKEN"'
+                regex: /[\w_]+/,
+                action: 'this.pushState("parse_colon");return "TOKEN";'
             }, {
                 conditions: ['parse_colon'],
                 regex: /:/,
-                action: 'this.popState();this.pushState("parse_tokens"); return ":";'
+                action: 'this.popState();this.pushState("parse_rhs"); return ":";'
+            }, {
+                conditions: ['parse_rhs'],
+                regex: /\w+/,
+                action: 'return "SYMBOL";'
+            }, {
+                conditions: ['parse_rhs'],
+                regex: /(['"])(?:\\\1|[^\1])*?\1/,
+                action: 'this.yytext = this.yytext.slice(1, -1).trim();return "TOKEN";'
+            }, {
+                conditions: ['parse_rhs'],
+                regex: /{/,
+                action: 'this.pushState("parse_code"); this.depth=1; return "{"; '
+            }, {
+                conditions: ['parse_rhs'],
+                regex: /\|/,
+                action: 'return "|";'
+            }, {
+                conditions: ['parse_rhs'],
+                regex: /;/,
+                action: 'this.popState();return ";";'
+            }, {
+                conditions: ['parse_rhs'],
+                regex: /}/,
+                action: 'return "}";'
             }, {
                 conditions: ['parse_code'],
                 regex: /(.|\r|\n)*?[}{]/,
                 action: 'if(this.yytext[this.yyleng-1]=="{"){this.depth++;}else{this.depth--;}if(this.depth){this.yymore();}else{this.unToken(1);this.yytext=this.yytext.substr(0,this.yytext.length-1);this.popState();return "CODE"}'
-            }, {
-                conditions: ['productions'],
-                regex: /}/,
-                action: 'return "}";'
             }, {
                 conditions: ['parse_all_code'],
                 regex: /[\s\S]*/,
@@ -115,12 +131,17 @@ var bnfParserCode = new Generator({
             'TOKEN : rhslist ;' : 'this.$$ = {}; this.$$[$1] = $3;'
         },
         'rhslist': {
-            'rhslist | rhs': 'this.$$ = $1; _.merge(this.$$, $3);',
-            'rhs' : 'this.$$ = $1'
+            'rhslist | rhscode': 'this.$$ = $1; _.merge(this.$$, $3);',
+            'rhscode' : 'this.$$ = $1'
         },
-        'rhs': {
-            'TOKENS { CODE }': 'this.$$ = {}; this.$$[$1] = $3;',
-            'TOKENS': 'this.$$ = {}; this.$$[$1] = ""'
+        'rhscode': {
+            'rhs { CODE }': 'this.$$ = {}; this.$$[$1] = $3;',
+            'rhs': 'this.$$ = {}; this.$$[$1] = ""'
+        },
+        'rhs' : {
+            'SYMBOL' : 'this.$$ = $1',
+            'TOKEN' : 'this.$$ = $1',
+            'rhs rhs' : 'this.$$ = $1 + " " +$2'
         }
     },
     code: 'global.bnfParser = parser;'

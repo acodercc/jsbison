@@ -3,15 +3,12 @@
 %%
 
 expr
-    : expr + term
-        {
-            this.$$ = $1 + $3;
-        }
-    | term
-    ;
+    : expr '+' term {
+            this.$$ = $1 + $3;}
+    | term;
 
 term
-    : term * factoy
+    : term '*' factoy
         {
             this.$$ = $1 * $3;
         }
@@ -19,12 +16,7 @@ term
     ;
 
 factoy
-    : NUMBER
-    |   ( expr )
-        {
-            this.$$ = $2;
-        }
-    ;
+    : 'NUMBER' | '(' expr ')' {this.$$ = $2;};
 
 %%
 

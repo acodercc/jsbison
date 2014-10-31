@@ -12,7 +12,7 @@
         var lexcfg = lexParser.$$;
     }
 
-    if(bnfParser.parse(bnfcontent)){
+    if(bnfParser.parse(bnfcontent,true)){
         var bnfcfg = bnfParser.$$;
     }
 
