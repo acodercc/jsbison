@@ -59,7 +59,7 @@ var bnfParserCode = new Generator({
                 action: 'this.popState();this.pushState("parse_rhs"); return ":";'
             }, {
                 conditions: ['parse_rhs'],
-                regex: /\w+/,
+                regex: /[a-zA-Z_$][\w$]*/,
                 action: 'return "SYMBOL";'
             }, {
                 conditions: ['parse_rhs'],
