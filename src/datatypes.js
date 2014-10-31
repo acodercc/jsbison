@@ -58,30 +58,18 @@
         function Item(production, dotPosition, lookaheads){
             this.production = production;
             this.dotPosition = dotPosition || 0;
-            this.lookaheads = lookaheads || {};
+            this.lookaheads = lookaheads || [];
 
             this.dotSymbol = production.rhs[dotPosition];
 
-            this.id = parseInt(production.id + 'a' + dotPosition, 36);
-            this.key = this.id + '_' + Object.keys(lookaheads).sort().join('|');
+            this.id = parseInt(production.id + 'a' + dotPosition, 36) + lookaheads.sort().join(',');
         }
         Item.prototype = {
             equals: function(b){
-                /*
-                if(this.coreEquals(b)){
-                    return this.lookaheads.sort().join('||') === b.lookaheads.sort().join('||');
-                }
-                return false;
-                */
-                return this.key === b.key;
-            },
-            coreEquals: function(b){
-                //return this.production.equals(b.production) && this.dotPosition === b.dotPosition;
-
                 return this.id === b.id;
             },
             toString: function(){
-                return this.production.toString(this.dotPosition) + '\t\tdotPos:' + this.dotPosition + '\t\tlookaheads:' + Object.keys(this.lookaheads).sort().join(',');
+                return this.production.toString(this.dotPosition) + '\t\tdotPos:' + this.dotPosition + '\t\tlookaheads:' + this.lookaheads.sort().join(',');
             }
         };
 
@@ -94,37 +82,18 @@
         }
         ItemSet.prototype = {
             key: function(){
-                if(this._key){
-                    return this._key;
-                }else{
-                    return this._key = _.map(this.subItems, function(item){
-                        return item.key;
-                    }).sort().join('_');
-                }
-            },
-            coreKey: function(){
-                if(this._coreKey){
-                    return this._coreKey;
-                }else{
-                    return this._coreKey = _.map(this.subItems, function(item){
-                        return item.id;
-                    }).sort().join('_');
-                }
-            },
-            coreIndexOf: function(item){
-                for(var i=0,len=this.subItems.length; i<len; i++){
-                    if(this.subItems[i].coreEquals(item)){
-                        return i;
-                    }
-                }
-                return -1;
+                var _key = _.map(this.subItems, function(item){
+                    return item.id;
+                }).sort().join('|');
+                this.key = function(){return _key};
+                return _key;
             },
             push: function(item){
                 this.subItems.push(item);
                 this._hash[item.id] = true;
             },
             contains: function(item){
-                return this._hash[item.id];
+                return this._hash[item.id] !== undefined;
             },
             concat: function(itemSet){
                 var items = itemSet.subItems;
@@ -135,37 +104,12 @@
             union: function(itemSet){
                 var items = itemSet.subItems;
                 for(var i=0; i<items.length; i++){
-                    if(!this._hash[items[i].id]){
+                    if(this._hash[items[i].id] === undefined){
                         this.push(items[i]);
                     }
                 }
             },
-            coreEquals: function(b){
-                /*
-                if(this.subItems.length !== b.subItems.length){
-                    return false;
-                }
-                _.each(this.subItems, function(item, idx){
-                    if(!item.coreEquals(b.subItems[idx])){
-                        return false;
-                    }
-                });
-                return true;
-                */
-                return this.coreKey() === b.coreKey();
-            },
             equals: function(b){
-                /*
-                if(this.subItems.length !== b.subItems.length){
-                    return false;
-                }
-                for(var i=0,len=this.subItems.length; i<len; i++){
-                    if(!this.subItems[i].equals(b.subItems[i])){
-                        return false;
-                    }
-                }
-                return true;
-                */
                 return this.key() === b.key();
             },
             toString: function(){

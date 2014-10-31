@@ -24,7 +24,7 @@ console.log(generator);
 console.log(generator.toString());
 var parserCode = generator.generate();
 var parser = eval(parserCode);
-if(parser.parse('1+2*3',true)){
+if(parser.parse('var a=1;',true)){
     alert(parser.lexer.input + '=' + parser.$$);
 }
 

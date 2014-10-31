@@ -76,15 +76,17 @@
             }
             if(this.cfg.type === 'SLR(1)' || this.cfg.type === 'LR(1)'){
 
-                str += 'LR(1) Action Table: \n' + JSON.stringify(this.states, null, '  ') + ' \n\n';
+                //str += 'LR(1) Action Table: \n' + JSON.stringify(this.states, null, '  ') + ' \n\n';
                 str += 'LR(1) GOTO Table: \n' + JSON.stringify(this.gotos, null, '  ') + ' \n\n';
 
+                /*
                 str += 'LR ItemSets: \n' + _.map(this.itemSets, function(itemSet, itemSetNum){
                     var fromInfo = itemSet.fromItemSet ? '(from:'+itemSet.fromItemSet[0]+',symbol:'+itemSet.fromItemSet[1] + ')' : '';
                     return 'itemSet' + itemSetNum + ':' + fromInfo +'\n' +  _.map(itemSet.subItems, function(item){
                         return item.toString()
                     }).join('\n');
                 }).join('\n\n') + '\n\n';
+                */
 
             }
 
@@ -425,49 +427,42 @@
 
             var firstItemSet = self._closureItemSet(itemSet0),
                 itemSets = this.itemSets = [],
-                curlength;
+                itemSetsHash = {},
+                itemSet,
+                formState,
+                curIdx;
 
 
-            function itemSetIndexOf(aItemSet){
-                for(var i=0,len=itemSets.length; i<len; i++){
-                    if(itemSets[i].equals(aItemSet)){
-                        return i;
-                    }
-                }
-                return -1;
-            }
 
+            itemSetsHash[firstItemSet.key()] = 0;
             itemSets.push(firstItemSet);
 
-            curlength=0;
+            curIdx=0;
 
-            while(curlength !== itemSets.length){   //C0 
-                curlength = itemSets.length;
+            while(curIdx !== itemSets.length){   //C0 
 
-                _.each(itemSets, function(itemSet, fromNum){
-                    _.each(itemSet.subItems, function(item){
+                itemSet = itemSets[curIdx];
+                curIdx++;
 
-                        if(item.dotSymbol){
-                            var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol);
+                _.each(itemSet.subItems, function(item){
 
-                            gotoItemSet.fromItemSet = [fromNum, item.dotSymbol];
+                    if(item.dotSymbol){
+                        var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol);
 
-                            var itemSetIdx = itemSetIndexOf(gotoItemSet);
-                            if(itemSetIdx !== -1){
-                                itemSet.gotos[item.dotSymbol] = itemSetIdx;
-                            }else{
-                                //原itemSet通过该dotSymbol，转换到的新itemSet的序号
-                                itemSet.gotos[item.dotSymbol] = itemSets.length;
-                                itemSets.push(gotoItemSet);
-                            }
+                        var itemSetIdx = itemSetsHash[gotoItemSet.key()];
 
+                        if(itemSetIdx !== undefined){
+                            itemSet.gotos[item.dotSymbol] = itemSetIdx;
+                        }else{
+                            //原itemSet通过该dotSymbol，转换到的新itemSet的序号
+                            itemSet.gotos[item.dotSymbol] = itemSets.length;
+                            itemSetsHash[gotoItemSet.key()] = itemSets.length;
+                            itemSets.push(gotoItemSet);
                         }
-
-                    });
+                    }
                 });
+
             }
-
-
 
             return itemSets;
         },
@@ -495,9 +490,6 @@
             if (gotoItemSet.subItems.length){
                 gotoItemSet = self._closureItemSet(gotoItemSet);
             }
-            //cahce the key
-            gotoItemSet.coreKey();
-            gotoItemSet.key();
             return gotoItemSet;
         },
 
@@ -514,42 +506,52 @@
         _closureItemSet: function(itemSet){
 
             var self = this,
-            closureItemSet = new DataTypes.ItemSet(),
-            cont = true;
-            /*
-            closureSymbolHash = {};
-            */
+            closureItemSet = new DataTypes.ItemSet();
 
+            var set = itemSet,
+                itemQueue;
+            do{         //C0
+                itemQueue = new DataTypes.ItemSet();
+                closureItemSet.union(set);
 
-            while(cont){         //C0
-                cont = false;
-                closureItemSet.union(itemSet);
-
-                itemSet = new DataTypes.ItemSet();
-                _.each(closureItemSet.subItems, function(item){        //each closureItems
+                _.each(set.subItems, function(item){        //each closureItems
                     if(item.dotSymbol && self.nonterminals[item.dotSymbol]){
                         /*
                         if(!closureSymbolHash[item.dotSymbol]){         //exists un derivation nonterminal
                         */
+                            var afterRhs = item.production.rhs.slice(item.dotPosition+1);
+                            lookaheads = self._first(afterRhs);
+                            if(lookaheads.length === 0 || item.production.nullable || self._nullable(afterRhs)){
+                                lookaheads = _.union(lookaheads, item.lookaheads);
+                            }
+
+                            _.each(self.nonterminals[item.dotSymbol].productions, function(p){
+                                    var item = new DataTypes.Item(p, 0, lookaheads);
+                                    if(!closureItemSet.contains(item) && !itemQueue.contains(item)){
+                                        itemQueue.push(item); //new clsoure-item
+                                    }
+                            });
+
 
                             /**
                              * 求闭包的项的输入点非终结符后面的RHS 和 求闭包的项的每个lookahead符号 连接
                              * 然后进行FIRSTS运算，拿到lookaheads
                              * 每个lookaheads，进行并集运算，得到最终的lookaheads
                              */
-                            var lookaheads = {};
-                            _.each(Object.keys(item.lookaheads), function(fchr){
+                            /*
+                            var lookaheads = [];
+                            _.each(item.lookaheads, function(fchr){
                                 var afterRHS = item.production.rhs.slice(item.dotPosition+1)
                                     afterRHS.push(fchr);
-                                    _.forEach(self._first(afterRHS), function(token){
-                                        lookaheads[token] = true;
-                                    });
+                                    lookaheads = _.union(lookaheads, self._first(afterRHS));
                             });
+                            */
 
                             //求闭包的项的输入点非终结符，的每个产生式p
                             //查找闭包集合中是否已经存在相同核心的产生式
                             //存在则合并lookaheads
                             //不存在则创建
+                            /*
                             _.each(self.nonterminals[item.dotSymbol].productions, function(p){
                                     var item = new DataTypes.Item(p, 0, lookaheads),
                                     itemIdx;
@@ -558,16 +560,19 @@
                                         cont = true;                            //C0不动点循环继续
                                     }else{
                                         item = closureItemSet.subItems[itemIdx];
-                                        item.lookaheads = _.merge(item.lookaheads, lookaheads);
+                                        item.lookaheads = _.union(item.lookaheads, lookaheads);
                                     }
                             });
+                            */
                             //closureSymbolHash[item.dotSymbol] = true;   //cur nonterminal derivated
                             /*
                         }
                         */
                     }
                 });
-            }
+                set = itemQueue;
+            }while(set.subItems.length);
+
             return closureItemSet;
         },
 
@@ -609,7 +614,7 @@
                             if(self.cfg.type === 'SLR(1)'){
                                 terms = self.nonterminals[item.production.symbol].follows;
                             }else if(self.cfg.type === 'LR(1)'){
-                                terms = Object.keys(item.lookaheads);
+                                terms = item.lookaheads;
                             }else if(self.cfg.type === 'LALR'){
                                 terms = item.follows;
                             }
@@ -643,7 +648,7 @@
                         hasGoto = true;
                     }
                 });
-                if(hasGoto){
+                if(true||hasGoto){
                     gotos[itemNum] = g;
                 }
 

@@ -20,14 +20,18 @@
     bnfcfg.type = 'LR(1)';
 
 
+    var start = +new Date;
     var ExprParserGenerator = new Generator(bnfcfg);
+    console.log(+new Date - start);
+
+    fs.writeFileSync('./generator.txt', ExprParserGenerator.toString());
 
     var exprParserCode = ExprParserGenerator.generate();
     fs.writeFileSync('./testparser.js', exprParserCode);
 
     var exprParser = eval(exprParserCode);
 
-    exprParser.parse("1+2*3", true)
+    exprParser.parse("var a=1;", true)
     console.log(exprParser.lexer.input , 'parse result:', exprParser.$$);
 
 
@@ -37,5 +41,6 @@
         rule.regex = rule.regex.toString();
     }
     fs.writeFileSync('testcfg.js', 'var testcfg = '+JSON.stringify(bnfcfg, null, '  '));
+
 
 })();
