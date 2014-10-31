@@ -14,5 +14,4 @@
 \)           return ")";
 \{           return "{";
 \}           return "}";
-
 \w  {}

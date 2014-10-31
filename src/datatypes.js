@@ -31,11 +31,11 @@
 
                 if(dotPos !== undefined){
                     dotRhs = this.rhs.concat();
-                    dotRhs.splice(dotPos, 0, '.');
+                    dotRhs.splice(dotPos, 0, '▪');
 
                     srhs = dotRhs.join(' ');
                 }
-                return this.id + '. ' + this.symbol + ' -> ' + srhs + '\t\t\tfirsts:' + this.firsts.join(',');
+                return 'production:{ id:'+this.id + ', lhs:' + this.symbol + ', rhs:' + srhs + '\t\tfirsts:' + this.firsts.join(',') + ' }';
             },
             equals: function(b){
                 return this.symbol === b.symbol && this.srhs === b.srhs;

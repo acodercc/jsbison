@@ -76,7 +76,9 @@
             }
             if(this.cfg.type === 'SLR(1)' || this.cfg.type === 'LR(1)'){
 
-                //str += 'LR ItemSets: \n' + JSON.stringify(this.itemSets, null, ' ') + '\n\n';
+                str += 'LR(1) Action Table: \n' + JSON.stringify(this.states, null, '  ') + ' \n\n';
+                str += 'LR(1) GOTO Table: \n' + JSON.stringify(this.gotos, null, '  ') + ' \n\n';
+
                 str += 'LR ItemSets: \n' + _.map(this.itemSets, function(itemSet, itemSetNum){
                     var fromInfo = itemSet.fromItemSet ? '(from:'+itemSet.fromItemSet[0]+',symbol:'+itemSet.fromItemSet[1] + ')' : '';
                     return 'itemSet' + itemSetNum + ':' + fromInfo +'\n' +  _.map(itemSet.subItems, function(item){
@@ -84,7 +86,6 @@
                     }).join('\n');
                 }).join('\n\n') + '\n\n';
 
-                str += 'LR(1) Action Table: \n' + JSON.stringify(this.states, null, '') + ' \n\n';
             }
 
             return str;
@@ -623,12 +624,16 @@
             gotos = self.gotos = {},
             lrtable = self.lrtable = {actions: states, gotos: gotos};
 
+            //遍历项集族
             _.each(self.itemSets, function(itemSet, itemNum){
                 var g = {},
                 hasGoto = false;
 
+                //遍历项集的gotos表
                 _.forIn(itemSet.gotos, function(goItemNum, symbol){
-                    if(self.nonterminals[symbol]){
+
+                    //只把非终结符的转换，设置到g上
+                    if(true||self.nonterminals[symbol]){
                         g[symbol] = goItemNum;
                         hasGoto = true;
                     }
@@ -639,6 +644,8 @@
 
             });
 
+            //构造gotos表就是把数组的项集族，设为以ItemNum(state状态)为key的HASH表
+            //每个value是状态的goto表，并筛选非终结符的goto
             return gotos;
         },
 
