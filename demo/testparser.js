@@ -88,25 +88,39 @@ getToken_:function (isDebug){
                 //这个断点的原因是，这是编写lex文法时常见的错误，就是自动机陷入一个没有任何规则激活的状态中了
             }
 
+            var possibleInputs = [],
+            maxLength = 0;
+
             for(var i=0,len=activeRules.length; i<len; i++){
                 regex = activeRules[i].regex;
 
                 if(matches = input.match(activeRules[i].regex)){
-                    if(self._more){
-                        self.yytext += matches[0];
-                    }else{
-                        self.yytext = matches[0];
-                    }
-                    self.position += matches[0].length;
-                    self.yyleng = self.yytext.length;
-                    self._more = false;
-                    return (new Function(activeRules[i].action)).call(self);
+                    possibleInputs.push({rule:activeRules[i], match: matches[0]});
+                    maxLength = maxLength > matches[0].length ? maxLength : matches[0].length;
                 }
             }
+
+            if(possibleInputs.length){
+                possibleInputs = _.filter(possibleInputs, function(possible){
+                    return possible.match.length === maxLength;
+                });
+
+                if(self._more){
+                    self.yytext += possibleInputs[0].match;
+                }else{
+                    self.yytext = possibleInputs[0].match;
+                }
+                self.position += possibleInputs[0].match.length;
+                self.yyleng = self.yytext.length;
+                self._more = false;
+                return (new Function(possibleInputs[0].rule.action)).call(self);
+            }
+
             if(isDebug){
                 debugger
                 //这个断点的原因是，没有在循环体中return 说明当前输入已经无法命中任何规则，自动机将陷入死循环
             }
+            throw('invalid input: ' + input);
         },
 reset:function (){
             this.setInput(this.input);

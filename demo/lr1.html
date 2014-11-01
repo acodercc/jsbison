@@ -16,7 +16,21 @@
 
 debugger
 var start = +new Date
-var generator = new Generator(testcfg);
+var generator = new Generator({
+    lex: {
+        'rules':[
+            {'regex': /\d+?/, 'action':'return "NUMBER";'},
+            {'regex': /123/, 'action':'return "NUMBER";'}
+        ]
+    },
+    type: 'LR(1)',
+    start: 's',
+    bnf: {
+        's': {
+            'NUMBER': 'this.$$ = $1'
+        }
+    }
+});
 console.log(+new Date - start);
 debugger
 
@@ -24,7 +38,7 @@ console.log(generator);
 console.log(generator.toString());
 var parserCode = generator.generate();
 var parser = eval(parserCode);
-if(parser.parse('var a=1;',true)){
+if(parser.parse('1234',true)){
     alert(parser.lexer.input + '=' + parser.$$);
 }
 
