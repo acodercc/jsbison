@@ -430,7 +430,8 @@
                 itemSetsHash = {},
                 itemSet,
                 formState,
-                curIdx;
+                curIdx,
+                symbolHash;
 
 
 
@@ -444,9 +445,13 @@
                 itemSet = itemSets[curIdx];
                 curIdx++;
 
+                symbolHash = {};
+
                 _.each(itemSet.subItems, function(item){
 
-                    if(item.dotSymbol){
+                    if(item.dotSymbol && !symbolHash[item.dotSymbol]){
+
+                        symbolHash[item.dotSymbol] = true;
                         var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol);
 
                         var itemSetIdx = itemSetsHash[gotoItemSet.key()];
@@ -458,6 +463,7 @@
                             itemSet.gotos[item.dotSymbol] = itemSets.length;
                             itemSetsHash[gotoItemSet.key()] = itemSets.length;
                             itemSets.push(gotoItemSet);
+                            console.log(itemSets.length);
                         }
                     }
                 });
@@ -504,6 +510,9 @@
          *
          */
         _closureItemSet: function(itemSet){
+
+            this.closureCount = this.closureCount || 0;
+            this.closureCount++;
 
             var self = this,
             closureItemSet = new DataTypes.ItemSet();
