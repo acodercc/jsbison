@@ -16,6 +16,7 @@
 
 debugger
 var start = +new Date
+/*
 var generator = new Generator({
     lex: {
         'rules':[
@@ -31,6 +32,8 @@ var generator = new Generator({
         }
     }
 });
+*/
+var generator = new Generator(testcfg);
 console.log(+new Date - start);
 debugger
 
@@ -38,7 +41,7 @@ console.log(generator);
 console.log(generator.toString());
 var parserCode = generator.generate();
 var parser = eval(parserCode);
-if(parser.parse('1234',true)){
+if(parser.parse('ab',true)){
     alert(parser.lexer.input + '=' + parser.$$);
 }
 

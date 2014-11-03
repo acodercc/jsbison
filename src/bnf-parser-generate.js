@@ -136,7 +136,8 @@ var bnfParserCode = new Generator({
         },
         'rhscode': {
             'rhs { CODE }': 'this.$$ = {}; this.$$[$1] = $3;',
-            'rhs': 'this.$$ = {}; this.$$[$1] = ""'
+            'rhs': 'this.$$ = {}; this.$$[$1] = ""',
+            '{ CODE }': 'this.$$ = {}; this.$$[""] = $2;'
         },
         'rhs' : {
             'SYMBOL' : 'this.$$ = $1',
