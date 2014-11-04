@@ -463,7 +463,7 @@
                             itemSet.gotos[item.dotSymbol] = itemSets.length;
                             itemSetsHash[gotoItemSet.key()] = itemSets.length;
                             itemSets.push(gotoItemSet);
-                            console.log(itemSets.length);
+                            console.log('generate lr state:' + itemSets.length);
                         }
                     }
                 });
