@@ -433,9 +433,12 @@
                 curIdx,
                 symbolHash;
 
+            //为什么是itemSet0.key() 不是firstItemSet.key()
+            //因为要用仅包含内核项的项集做KEY，下次GOTO运算的结果项集在未CLOSURE运算前，
+            //就能判断是否已经存在于项集族中，如果已存在，就直接拿到ID，否则进行CLOSURE运算增加到项集族中
+            //避免没必要的CLOSURE计算
+            itemSetsHash[itemSet0.key()] = 0;       
 
-
-            itemSetsHash[firstItemSet.key()] = 0;
             itemSets.push(firstItemSet);
 
             curIdx=0;
@@ -452,16 +455,19 @@
                     if(item.dotSymbol && !symbolHash[item.dotSymbol]){
 
                         symbolHash[item.dotSymbol] = true;
-                        var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol);
+                        var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol, itemSetsHash, itemSets);
 
-                        var itemSetIdx = itemSetsHash[gotoItemSet.key()];
-
-                        if(itemSetIdx !== undefined){
-                            itemSet.gotos[item.dotSymbol] = itemSetIdx;
+                        if(typeof gotoItemSet === 'number'){
+                            itemSet.gotos[item.dotSymbol] = gotoItemSet;
+                            self.gotoItemSetRepeatCount = self.gotoItemSetRepeatCount || 0;
+                            self.gotoItemSetRepeatCount += 1;
                         }else{
                             //原itemSet通过该dotSymbol，转换到的新itemSet的序号
                             itemSet.gotos[item.dotSymbol] = itemSets.length;
-                            itemSetsHash[gotoItemSet.key()] = itemSets.length;
+
+                            //移动到self._gotoItemSet函数中
+                            //itemSetsHash[gotoItemSet.key()] = itemSets.length;
+
                             itemSets.push(gotoItemSet);
                             console.log('generate lr state:' + itemSets.length);
                         }
@@ -482,7 +488,7 @@
          * 增加到goto项集中，计算goto项集的闭包项集，返回
          * 
          */
-        _gotoItemSet: function(itemSet, symbol){
+        _gotoItemSet: function(itemSet, symbol, itemSetsHash, itemSets){
             var self = this,
                 gotoItemSet = new DataTypes.ItemSet();
 
@@ -492,6 +498,12 @@
                     gotoItemSet.push(new DataTypes.Item(item.production, item.dotPosition+1, item.lookaheads));
                 }
             });
+
+            if(itemSetsHash[gotoItemSet.key()]){
+                return itemSetsHash[gotoItemSet.key()];
+            }else{
+                itemSetsHash[gotoItemSet.key()] = itemSets.length;
+            }
 
             if (gotoItemSet.subItems.length){
                 gotoItemSet = self._closureItemSet(gotoItemSet);

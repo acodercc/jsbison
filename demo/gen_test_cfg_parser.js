@@ -1,8 +1,8 @@
 (function(){
 
-    var lexfile = './epsilon.l';
-    var bnffile = './epsilon.y';
-    var inputs = 'abc';
+    var lexfile = './js.l';
+    var bnffile = './js.y';
+    var inputs = 'var a = 1;';
 
 
     var fs = require('fs');
@@ -33,7 +33,9 @@
 
     var start = +new Date;
     var ExprParserGenerator = new Generator(bnfcfg);
-    console.log(+new Date - start);
+    console.log(+new Date - start + 'ms');
+    console.log('closure call time:' + ExprParserGenerator.closureCount);
+    console.log('repeat calc goto time:' + ExprParserGenerator.gotoItemSetRepeatCount);
 
     fs.writeFileSync('./generator.txt', ExprParserGenerator.toString());
 
