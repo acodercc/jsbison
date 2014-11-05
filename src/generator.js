@@ -427,11 +427,11 @@
 
             var firstItemSet = self._closureItemSet(itemSet0),
                 itemSets = this.itemSets = [],
-                itemSetsHash = {},
+                itemSetsHash = {},      //这个hash是为了判断项集是否已存在(在closure扩展项集之前生成key来判断)
                 itemSet,
                 formState,
                 curIdx,
-                symbolHash;
+                dotSymbolHash;         //这个hash是为了基于当前项集 和 各子项的dotSymbol进行goto运算时，避免已经goto运算过的dotSymbol再次运算
 
             //为什么是itemSet0.key() 不是firstItemSet.key()
             //因为要用仅包含内核项的项集做KEY，下次GOTO运算的结果项集在未CLOSURE运算前，
@@ -448,13 +448,13 @@
                 itemSet = itemSets[curIdx];
                 curIdx++;
 
-                symbolHash = {};
+                dotSymbolHash = {};
 
                 _.each(itemSet.subItems, function(item){
 
-                    if(item.dotSymbol && !symbolHash[item.dotSymbol]){
+                    if(item.dotSymbol && !dotSymbolHash[item.dotSymbol]){
 
-                        symbolHash[item.dotSymbol] = true;
+                        dotSymbolHash[item.dotSymbol] = true;
                         var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol, itemSetsHash, itemSets);
 
                         if(typeof gotoItemSet === 'number'){
