@@ -455,19 +455,19 @@
                     if(item.dotSymbol && !dotSymbolHash[item.dotSymbol]){
 
                         dotSymbolHash[item.dotSymbol] = true;
-                        var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol, itemSetsHash, itemSets);
+                        var gotoItemSet = self._gotoItemSet(itemSet, item.dotSymbol);
 
-                        if(typeof gotoItemSet === 'number'){
-                            itemSet.gotos[item.dotSymbol] = gotoItemSet;
+                        if(itemSetsHash[gotoItemSet.key()]){
+                            itemSet.gotos[item.dotSymbol] = itemSetsHash[gotoItemSet.key()];
                             self.gotoItemSetRepeatCount = self.gotoItemSetRepeatCount || 0;
                             self.gotoItemSetRepeatCount += 1;
                         }else{
+                            itemSetsHash[gotoItemSet.key()] = itemSets.length;
+                            if (gotoItemSet.subItems.length){
+                                gotoItemSet = self._closureItemSet(gotoItemSet);
+                            }
                             //原itemSet通过该dotSymbol，转换到的新itemSet的序号
                             itemSet.gotos[item.dotSymbol] = itemSets.length;
-
-                            //移动到self._gotoItemSet函数中
-                            //itemSetsHash[gotoItemSet.key()] = itemSets.length;
-
                             itemSets.push(gotoItemSet);
                             console.log('generate lr state:' + itemSets.length);
                         }
@@ -488,7 +488,7 @@
          * 增加到goto项集中，计算goto项集的闭包项集，返回
          * 
          */
-        _gotoItemSet: function(itemSet, symbol, itemSetsHash, itemSets){
+        _gotoItemSet: function(itemSet, symbol){
             var self = this,
                 gotoItemSet = new DataTypes.ItemSet();
 
@@ -499,15 +499,6 @@
                 }
             });
 
-            if(itemSetsHash[gotoItemSet.key()]){
-                return itemSetsHash[gotoItemSet.key()];
-            }else{
-                itemSetsHash[gotoItemSet.key()] = itemSets.length;
-            }
-
-            if (gotoItemSet.subItems.length){
-                gotoItemSet = self._closureItemSet(gotoItemSet);
-            }
             return gotoItemSet;
         },
 
