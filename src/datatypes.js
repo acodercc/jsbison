@@ -22,7 +22,7 @@
             this.rhs = rhs;
             this.srhs = rhs.join(' ');
             this.id = id;
-            this.actionCode = actionCode || 'this.$$ = $1;'
+            this.actionCode = actionCode || ''
         }
 
         Production.prototype = {

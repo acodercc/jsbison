@@ -77,16 +77,14 @@
             if(this.cfg.type === 'SLR(1)' || this.cfg.type === 'LR(1)'){
 
                 //str += 'LR(1) Action Table: \n' + JSON.stringify(this.states, null, '  ') + ' \n\n';
-                str += 'LR(1) GOTO Table: \n' + JSON.stringify(this.gotos, null, '  ') + ' \n\n';
+                //str += 'LR(1) GOTO Table: \n' + JSON.stringify(this.gotos, null, '  ') + ' \n\n';
 
-                /*
                 str += 'LR ItemSets: \n' + _.map(this.itemSets, function(itemSet, itemSetNum){
                     var fromInfo = itemSet.fromItemSet ? '(from:'+itemSet.fromItemSet[0]+',symbol:'+itemSet.fromItemSet[1] + ')' : '';
                     return 'itemSet' + itemSetNum + ':' + fromInfo +'\n' +  _.map(itemSet.subItems, function(item){
                         return item.toString()
                     }).join('\n');
                 }).join('\n\n') + '\n\n';
-                */
 
             }
 
@@ -489,9 +487,9 @@
          * 
          */
         _gotoItemSet: function(itemSet, symbol){
+
             var self = this,
                 gotoItemSet = new DataTypes.ItemSet();
-
 
             _.each(itemSet.subItems, function(item){
                 if(item.dotSymbol === symbol){
@@ -714,8 +712,9 @@
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
-                        var reduceCode = ('/*' + production.symbol + ' -> ' + production.srhs + ';*/ this.$$ = $1;'+production.actionCode)
-                            .replace(/\$(\d+)/g, function(_, n){
+                        var reduceCode = ('/*' + production.symbol + ' -> ' + production.srhs + ';*/'
+                            + (self.defaultAction || 'this.$$ = $1;')
+                            + production.actionCode).replace(/\$(\d+)/g, function(_, n){
                                 return 'valueStack[' + (valueStack.length - production.rhs.length + parseInt(n, 10) - 1) + ']'
                             });
 
@@ -778,6 +777,7 @@
                         'lexer: ' + (new Lexer(self.cfg.lex)).generate() + ',',
                         'lrtable: ' + JSON.stringify(self.lrtable, null, '') + ',',
                         'productions: ' + JSON.stringify(self.productions, null, '') + ',',
+                        self.cfg.defaultAction ? 'defaultAction: "' + self.cfg.defaultAction.replace(/\n|\r/g,'') + '",' : '',
                         'parse:' + self.lrparse.toString(),
                     '};',
                     'if(typeof module == "object"){module.exports = parser}',

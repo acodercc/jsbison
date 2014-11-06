@@ -1,8 +1,8 @@
 (function(){
 
-    var lexfile = './js.l';
-    var bnffile = './js.y';
-    var inputs = 'var a = 1;';
+    var lexfile = './expr.l';
+    var bnffile = './expr.y';
+    var inputs = '2';
 
 
     var fs = require('fs');

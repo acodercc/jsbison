@@ -15,6 +15,7 @@
 
 
 debugger
+var inputs = '2*3';
 var start = +new Date
 /*
 var generator = new Generator({
@@ -41,7 +42,7 @@ console.log(generator);
 console.log(generator.toString());
 var parserCode = generator.generate();
 var parser = eval(parserCode);
-if(parser.parse('ab',true)){
+if(parser.parse(inputs,true)){
     alert(parser.lexer.input + '=' + parser.$$);
 }
 

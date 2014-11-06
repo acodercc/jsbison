@@ -6,7 +6,7 @@ var Generator = require('./generator.js');
 var bnfParserCode = new Generator({
     lex: {
         states:{
-            exclusive: 'parse_token parse_tokens productions parse_colon parse_symbols parse_code parse_all_code'
+            exclusive: 'parse_token parse_tokens productions parse_colon parse_symbols default_action parse_code parse_all_code'
         },
         rules: [{
                 regex: /\s+/,
@@ -20,6 +20,17 @@ var bnfParserCode = new Generator({
             }, {
                 regex: /%start/,
                 action: 'this.pushState("parse_token"); return "DEC_START";'
+            }, {
+                regex: /%defaultAction/,
+                action: 'this.pushState("default_action"); return "DEC_DEFACTION";'
+            }, {
+                conditions: ['default_action'],
+                regex: /\s*\{/,
+                action: 'this.depth = 1; this.pushState("parse_code"); return "{";'
+            }, {
+                conditions: ['default_action'],
+                regex: /\}/,
+                action: 'this.popState(); return "}";'
             }, {
                 conditions: ['parse_token'],
                 regex: /[^\s]+/,
@@ -99,7 +110,7 @@ var bnfParserCode = new Generator({
 
     type: 'LR(1)',
     start: 'bnf',
-    tokens: '%% CODE TOKEN TOKENS { } DEC_TOKEN DEC_START PRIORITY DEC_ASSOC',
+    tokens: '%% CODE TOKEN TOKENS { } DEC_TOKEN DEC_DEFACTION DEC_START PRIORITY DEC_ASSOC',
     bnf: {
         'bnf' : {
             'declarations %% productions opt_ends $end': ' this.$$ = $1; this.$$.bnf = $3; ',
@@ -116,6 +127,7 @@ var bnfParserCode = new Generator({
         },
         'declaration' : {
             'DEC_TOKEN TOKENS' : 'this.$$ = {tokens: $2}; ',
+            'DEC_DEFACTION { CODE }' : 'this.$$ = {defaultAction: $3};',
             'DEC_START TOKEN': 'this.$$ = {start: $2};',
             'operator PRIORITY' : 'this.$$ = $1; this.$$.priority = $2; ',
             'operator' : 'this.$$ = $1; this.$$.priority = 0; '
