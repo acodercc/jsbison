@@ -1,7 +1,7 @@
 %start term
 %defaultAction {
     this.$$ = $1+2;
-    console.log('run');
+    console.log($0);
 }
 
 %%

@@ -714,7 +714,9 @@
 
                         var reduceCode = ('/*' + production.symbol + ' -> ' + production.srhs + ';*/'
                             + (self.defaultAction || 'this.$$ = $1;')
-                            + production.actionCode).replace(/\$(\d+)/g, function(_, n){
+                            + production.actionCode)
+                            .replace(/\$0/g, JSON.stringify({symbol: production.symbol, rhs: production.rhs}))
+                            .replace(/\$(\d+)/g, function(_, n){
                                 return 'valueStack[' + (valueStack.length - production.rhs.length + parseInt(n, 10) - 1) + ']'
                             });
 

@@ -2,7 +2,7 @@
 
     var lexfile = './expr.l';
     var bnffile = './expr.y';
-    var inputs = '2';
+    var inputs = '1';
 
 
     var fs = require('fs');

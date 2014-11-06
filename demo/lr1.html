@@ -15,7 +15,7 @@
 
 
 debugger
-var inputs = '2*3';
+var inputs = 'var a = 2*3;';
 var start = +new Date
 /*
 var generator = new Generator({
@@ -39,7 +39,7 @@ console.log(+new Date - start);
 debugger
 
 console.log(generator);
-console.log(generator.toString());
+//console.log(generator.toString());
 var parserCode = generator.generate();
 var parser = eval(parserCode);
 if(parser.parse(inputs,true)){

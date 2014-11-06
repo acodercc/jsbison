@@ -129,7 +129,7 @@ reset:function (){
 })(),
 lrtable: {"actions":{"0":{"NUMBER":["shift",3]},"1":{"$end":["shift",4],"*":["shift",5]},"2":{"$end":["reduce",2],"*":["reduce",2]},"3":{"$end":["reduce",3],"*":["reduce",3]},"4":{"$end":["accept",0]},"5":{"NUMBER":["shift",3]},"6":{"$end":["reduce",1],"*":["reduce",1]}},"gotos":{"0":{"term":1,"factoy":2,"NUMBER":3},"1":{"$end":4,"*":5},"2":{},"3":{},"4":{},"5":{"factoy":6,"NUMBER":3},"6":{}}},
 productions: [{"symbol":"$accept","nullable":false,"firsts":["NUMBER"],"rhs":["term","$end"],"srhs":"term $end","id":0,"actionCode":""},{"symbol":"term","nullable":false,"firsts":["NUMBER"],"rhs":["term","*","factoy"],"srhs":"term * factoy","id":1,"actionCode":"\n            this.$$ = $1 * $3;\n        "},{"symbol":"term","nullable":false,"firsts":["NUMBER"],"rhs":["factoy"],"srhs":"factoy","id":2,"actionCode":""},{"symbol":"factoy","nullable":false,"firsts":["NUMBER"],"rhs":["NUMBER"],"srhs":"NUMBER","id":3,"actionCode":"\n            this.$$ = parseInt($1, 10);\n        "}],
-defaultAction: "    this.$$ = $1+2;    console.log('run');",
+defaultAction: "    this.$$ = $1+2;    console.log($0);",
 parse:function (input, isDebug){
             var self = this,
 
@@ -170,7 +170,9 @@ parse:function (input, isDebug){
 
                         var reduceCode = ('/*' + production.symbol + ' -> ' + production.srhs + ';*/'
                             + (self.defaultAction || 'this.$$ = $1;')
-                            + production.actionCode).replace(/\$(\d+)/g, function(_, n){
+                            + production.actionCode)
+                            .replace(/\$0/g, JSON.stringify({symbol: production.symbol, rhs: production.rhs}))
+                            .replace(/\$(\d+)/g, function(_, n){
                                 return 'valueStack[' + (valueStack.length - production.rhs.length + parseInt(n, 10) - 1) + ']'
                             });
 

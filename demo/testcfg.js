@@ -1,6 +1,6 @@
 var testcfg = {
   "start": "term",
-  "defaultAction": "\n    this.$$ = $1+2;\n    console.log('run');\n",
+  "defaultAction": "\n    this.$$ = $1+2;\n    console.log($0);\n",
   "bnf": {
     "term": {
       "term * factoy": "\n            this.$$ = $1 * $3;\n        ",
