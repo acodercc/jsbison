@@ -10,6 +10,10 @@
             this.symbol = symbol;
             this.nullable = false;
             this.firsts = [];
+            this.rhs = [];
+            this.symbolRhs = [];
+            var rhsSymbol;
+
             if(_.isString(rhs)){
                 rhs = rhs.trim();
                 if(rhs === ''){
@@ -18,8 +22,18 @@
                     rhs = rhs.split(' ');
                 }
             }
+            for(var i=0,len=rhs.length; i<len; i++){
+                if(rhs[i].match(/\[([^\]]+)\]/)){
+                    rhsSymbol[RegExp.$1] = true;
+                }else{
+                    rhsSymbol = {
+                        name: rhs[i]
+                    };
+                    this.rhs.push(rhs[i]);
+                    this.symbolRhs.push(rhsSymbol);
+                }
+            }
             
-            this.rhs = rhs;
             this.srhs = rhs.join(' ');
             this.id = id;
             this.actionCode = actionCode || ''

@@ -25,6 +25,10 @@ module.exports = (function(){
                         {
                             regex: /[\r\n]/,
                             action: 'return "NEWLINE";'
+                        },
+                        {
+                            regex: /\+\+/,
+                            action: 'return "++";'
                         }
                     ]
                 },
@@ -34,7 +38,7 @@ module.exports = (function(){
                 type: 'LR(1)',
                 bnf: {
                     'line' : {
-                        'NUMBER NEWLINE' : 'this.$$ = $1;',
+                        'NUMBER [noLineTerminator] ++ ;' : 'this.$$ = parseInt($1, 10) + 1;',
                         'NUMBER ;' : 'this.$$ = $1;'
                     }
                 },
@@ -43,10 +47,10 @@ module.exports = (function(){
 
             var parser = eval(parseCode);
 
-            var text = '1\r';
-            parser.parse(text);
-            test.equal(parser.$$, '1', text + ' PASSED');
 
+            var text = '1++;';
+            parser.parse(text);
+            test.equal(parser.$$, '2', text + ' PASSED');
 
             var text = '1;';
             parser.parse(text);
