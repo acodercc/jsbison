@@ -83,8 +83,9 @@
 
             return token;
         },
-        unToken: function(charsNum){
-            this.position -= charsNum;
+        unToken: function(token){
+            this.position -= this.yytext.length;
+            this.input = this.input.substr(0, this.position) + token + this.input.substr(this.position);
         },
         getCurrentRules: function(){
             var self = this,

@@ -685,6 +685,8 @@
             token,
             state;
 
+            delete self.$$;         //初始化归约值
+
             lexer.setInput(input);
             token = self.lexer.getToken(isDebug);
 
@@ -709,6 +711,7 @@
                         symbolStack.push(token);
                         valueStack.push(lexer.yytext);
                         token = lexer.getToken(isDebug);
+
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
@@ -763,7 +766,19 @@
                         return false;
                     }
                 }else{
-                    return false;
+                    //for @caliburn(https://github.com/takumi4ichi/caliburn)
+                    //token is offtending token
+                    //输入流自动插入一个semicolon
+                    if(token !== ';'){
+                        if(token === '}'){
+                            lexer.unToken(';');
+                            token = lexer.getToken(isDebug);
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        return false;
+                    }
                 }
             }
         },
