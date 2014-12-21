@@ -715,6 +715,10 @@
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
+                        //for @caliburn(https://github.com/takumi4ichi/caliburn)
+                        //token is restricted token
+                        //在这里检查产生式中是否包含受限token
+
                         var reduceCode = ('/*' + production.symbol + ' -> ' + production.srhs + ';*/'
                             + (self.defaultAction || 'this.$$ = $1;')
                             + production.actionCode)
@@ -767,10 +771,17 @@
                     }
                 }else{
                     //for @caliburn(https://github.com/takumi4ichi/caliburn)
-                    //token is offtending token
+                    //
+                    //offtending token:
+                    // 1. 该token是}
+                    // 2. 该token前面存在LineTerminator
+                    //
                     //输入流自动插入一个semicolon
                     if(token !== ';'){
                         if(token === '}'){
+                            lexer.unToken(';');
+                            token = lexer.getToken(isDebug);
+                        }else if(/[\n\r\u2028\u2029]\s*?$/.test(lexer.input.slice(0, lexer.position-lexer.yytext-length))){
                             lexer.unToken(';');
                             token = lexer.getToken(isDebug);
                         }else{
