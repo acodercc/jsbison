@@ -715,9 +715,12 @@
                     }else if(action[0] === 'reduce'){
                         var production = self.productions[action[1]];
 
-                        //for @caliburn(https://github.com/takumi4ichi/caliburn)
+                        //for [@caliburn](https://github.com/takumi4ichi/caliburn)
                         //token is restricted token
                         //在这里检查产生式中是否包含受限token
+                        if(production.isRestricted){
+                            debugger
+                        }
 
                         var reduceCode = ('/*' + production.symbol + ' -> ' + production.srhs + ';*/'
                             + (self.defaultAction || 'this.$$ = $1;')
@@ -770,7 +773,7 @@
                         return false;
                     }
                 }else{
-                    //for @caliburn(https://github.com/takumi4ichi/caliburn)
+                    //for [@caliburn](https://github.com/takumi4ichi/caliburn)
                     //
                     //offtending token:
                     // 1. 该token是}
@@ -781,9 +784,28 @@
                         if(token === '}'){
                             lexer.unToken(';');
                             token = lexer.getToken(isDebug);
-                        }else if(/[\n\r\u2028\u2029]\s*?$/.test(lexer.input.slice(0, lexer.position-lexer.yytext-length))){
-                            lexer.unToken(';');
-                            token = lexer.getToken(isDebug);
+                        }else if(/[\n\r\u2028\u2029]\s*?$/.test(lexer.input.slice(0, lexer.position-lexer.yytext.length))){
+
+                            //这里要判断，自动补全semicolon后
+                            //该semicolon不可以被归约为EmptyStatement
+                            //这个是ES5.1-Grammar 7.9章的自动补全分号的前置条件
+                            if(self.lrtable.actions[state] && self.lrtable.actions[state][';']){
+                                var semicolonAction = self.lrtable.actions[state][';'];
+                                if(semicolonAction[0] === 'shift'){
+                                    semicolonAction = self.lrtable.actions[semicolonAction[1]][';'];
+                                    if(semicolonAction[0] === 'shift' || (semicolonAction[0] === 'reduce' && self.productions[semicolonAction[1]].symbol !== 'EmptyStatement')){
+                                        lexer.unToken(';');
+                                        token = lexer.getToken(isDebug);
+                                        continue;
+                                    }
+                                }else if(semicolonAction[0] === 'reduce' && self.productions[semicolonAction[1]].symbol !== 'EmptyStatement'){
+                                        lexer.unToken(';');
+                                        token = lexer.getToken(isDebug);
+                                        continue;
+                                }
+                            }
+
+                            return false;
                         }else{
                             return false;
                         }

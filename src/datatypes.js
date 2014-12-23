@@ -13,6 +13,7 @@
             this.rhs = [];
             this.symbolRhs = [];
             var rhsSymbol;
+            var nextTokenProp;
 
             if(_.isString(rhs)){
                 rhs = rhs.trim();
@@ -24,17 +25,26 @@
             }
             for(var i=0,len=rhs.length; i<len; i++){
                 if(rhs[i].match(/\[([^\]]+)\]/)){
-                    rhsSymbol[RegExp.$1] = true;
+                    nextTokenProp = RegExp.$1;
+                    this.isRestricted = true;
                 }else{
                     rhsSymbol = {
                         name: rhs[i]
                     };
+
+                    if(nextTokenProp){
+                        rhsSymbol[nextTokenProp] = true;
+                    }
+                    nextTokenProp = null;
+
                     this.rhs.push(rhs[i]);
                     this.symbolRhs.push(rhsSymbol);
                 }
             }
             
-            this.srhs = rhs.join(' ');
+            this.srhs = this.rhs.join(' ');
+            //this.rhs = rhs;
+            //this.srhs = rhs.join(' ');
             this.id = id;
             this.actionCode = actionCode || ''
         }

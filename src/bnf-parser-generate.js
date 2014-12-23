@@ -78,6 +78,10 @@ var bnfParserCode = new Generator({
                 action: 'this.yytext = this.yytext.slice(1, -1).trim();return "TOKEN";'
             }, {
                 conditions: ['parse_rhs'],
+                regex: /\[[a-zA-Z_$][\w$]*?\]/,
+                action: 'return "PROP";'
+            }, {
+                conditions: ['parse_rhs'],
                 regex: /{/,
                 action: 'this.pushState("parse_code"); this.depth=1; return "{"; '
             }, {
@@ -110,7 +114,7 @@ var bnfParserCode = new Generator({
 
     type: 'LR(1)',
     start: 'bnf',
-    tokens: '%% CODE TOKEN TOKENS { } DEC_TOKEN DEC_DEFACTION DEC_START PRIORITY DEC_ASSOC',
+    tokens: '%% CODE TOKEN SYMBOL PROP TOKENS { } DEC_TOKEN DEC_DEFACTION DEC_START PRIORITY DEC_ASSOC',
     bnf: {
         'bnf' : {
             'declarations %% productions opt_ends $end': ' this.$$ = $1; this.$$.bnf = $3; ',
@@ -154,6 +158,7 @@ var bnfParserCode = new Generator({
         'rhs' : {
             'SYMBOL' : 'this.$$ = $1',
             'TOKEN' : 'this.$$ = $1',
+            'PROP' : 'this.$$ = $1',
             'rhs rhs' : 'this.$$ = $1 + " " +$2'
         }
     },

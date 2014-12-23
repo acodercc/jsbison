@@ -38,8 +38,8 @@ module.exports = (function(){
                 type: 'LR(1)',
                 bnf: {
                     'line' : {
-                        'NUMBER [noLineTerminator] ++ ;' : 'this.$$ = parseInt($1, 10) + 1;',
-                        'NUMBER ;' : 'this.$$ = $1;'
+                        'NUMBER [noLineTerminator] ++ ;' : 'this.$$ = parseInt($1, 10) + 1;',   //产生式1
+                        'NUMBER ;' : 'this.$$ = $1'         //产生式2
                     }
                 },
                 code: 'global.parser = parser;'
@@ -47,14 +47,25 @@ module.exports = (function(){
 
             var parser = eval(parseCode);
 
+            console.log(JSON.stringify(parser, null, '  '));
 
-            var text = '1++;';
-            parser.parse(text);
+
+            /*
+            var text = '1++;';      //应用产生式1
+            parser.parse(text, true);
             test.equal(parser.$$, '2', text + ' PASSED');
 
-            var text = '1;';
+            var text = '1;';        //应用产生式2
+            parser.parse(text, true);
+            test.equal(parser.$$, '1', text + ' PASSED');
+            */
+
+
+            /*
+            var text = '1';         //自动补全semicolon后应用产生式2
             parser.parse(text);
             test.equal(parser.$$, '1', text + ' PASSED');
+            */
 
             test.done();
         }
