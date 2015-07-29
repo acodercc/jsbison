@@ -1,16 +1,16 @@
 {
   "name": "jsbison",
   "description": "javascript对bison的实现",
-  "version": "0.3.5",
-  "homepage": "https://github.com/takumi4ichi",
+  "version": "0.3.6",
+  "homepage": "https://github.com/CecilLee",
   "author": {
-    "name": "takumi4ichi",
-    "email": "takumi4ichi@gmail.com"
+    "name": "CecilLee",
+    "email": "cciscecil@gmail.com"
   },
   "main": "src/generator.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:takumi4ichi/jsbison.git"
+    "url": "git@github.com:CecilLee/jsbison.git"
   },
   "licenses": [
     {
