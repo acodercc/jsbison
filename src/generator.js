@@ -189,7 +189,7 @@
                 cont = false;
 
                 self.productions.forEach(function(production){
-                    if(!production.nullbale){
+                    if(!production.nullable){
                         cont = production.nullable = self._nullable(production.rhs);
                     }
                 });
